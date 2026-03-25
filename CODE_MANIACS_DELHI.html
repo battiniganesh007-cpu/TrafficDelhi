@@ -136,6 +136,166 @@
       }
     }
 
+    /* FULL PAGE FOCUS MODE OVERLAYS */
+    body.focus-cam, body.focus-img {
+      background: #050b14 !important;
+      background-image: radial-gradient(circle at 50% 0%, #173045 0%, transparent 60%) !important;
+    }
+    body.focus-cam canvas, body.focus-img canvas {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    body.focus-cam #topbar, body.focus-img #topbar,
+    body.focus-cam #dash, body.focus-img #dash,
+    body.focus-cam #qhud, body.focus-img #qhud,
+    body.focus-cam #mlhud, body.focus-img #mlhud,
+    body.focus-cam #co2hud, body.focus-img #co2hud,
+    body.focus-cam #ambhud, body.focus-img #ambhud,
+    body.focus-cam #inchud, body.focus-img #inchud,
+    body.focus-cam #emglow, body.focus-img #emglow,
+    body.focus-cam #ambcam, body.focus-img #ambcam {
+      display: none !important;
+    }
+    body.focus-cam .dp-close, body.focus-img .ib-close {
+      display: none !important;
+    }
+    
+    body.focus-cam #detpanel {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: none !important;
+      max-height: none !important;
+      transform: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    body.focus-cam #detpanel .dp-head {
+      padding: 30px 40px 0 !important;
+    }
+    body.focus-cam .dp-title {
+      font-size: 18px !important;
+    }
+    body.focus-cam .dp-tabs {
+      padding: 0 40px !important;
+    }
+    body.focus-cam #detpanel .dp-body {
+      flex: 1 !important;
+      max-height: none !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow-y: auto !important;
+      padding: 30px 40px !important;
+      align-items: center !important;
+    }
+    body.focus-cam #vid-wrap {
+      width: 100% !important;
+      flex: 1 !important;
+      min-height: 0 !important;
+      position: relative !important;
+      border-radius: 12px !important;
+      background: #000 !important;
+      overflow: hidden !important;
+    }
+    body.focus-cam video, body.focus-cam #vid-overlay {
+      width: 100% !important;
+      height: 100% !important;
+      max-height: none !important;
+      max-width: none !important;
+      object-fit: contain !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+    }
+    body.focus-cam #det-results {
+      width: 100% !important;
+      max-width: 800px !important;
+      margin: 20px auto 0 !important;
+    }
+    
+    body.focus-img #imgbank {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: none !important;
+      max-height: none !important;
+      transform: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      display: flex !important;
+      flex-direction: column !important;
+      padding: 20px 40px !important;
+    }
+    body.focus-img .ib-title {
+      font-size: 18px !important;
+      padding: 10px 0 20px !important;
+    }
+    body.focus-img .ib-grid {
+      flex: 1 !important;
+      max-height: none !important;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+      overflow-y: auto !important;
+      margin-top: 20px !important;
+    }
+    
+    body.focus-cam .upload-zone, body.focus-img .ib-drop {
+      flex: 1 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      border: 2px dashed rgba(6, 182, 212, 0.4) !important;
+      background: rgba(6, 182, 212, 0.03) !important;
+      border-radius: 16px !important;
+      margin: 30px auto !important;
+      width: 100% !important;
+      max-width: 600px !important;
+      min-height: 240px !important;
+      max-height: 340px !important;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+    body.focus-img .ib-drop {
+      border-color: rgba(245, 158, 11, 0.4) !important;
+      background: rgba(245, 158, 11, 0.03) !important;
+    }
+    body.focus-cam .upload-zone:hover {
+      background: rgba(6, 182, 212, 0.08) !important;
+      border-color: var(--c) !important;
+      transform: scale(1.02) !important;
+    }
+    body.focus-img .ib-drop:hover {
+      background: rgba(245, 158, 11, 0.08) !important;
+      border-color: var(--y) !important;
+      transform: scale(1.02) !important;
+    }
+    body.focus-cam .upload-zone .icon, body.focus-img .ib-drop div {
+      font-size: 48px !important;
+      margin-bottom: 16px !important;
+    }
+    body.focus-cam .upload-zone p, body.focus-img .ib-drop p {
+      font-size: 16px !important;
+      line-height: 1.5 !important;
+      color: #f8fafc !important;
+    }
+    body.focus-cam .upload-zone span, body.focus-img .ib-drop span {
+      font-size: 13px !important;
+      color: #94a3b8 !important;
+    }
+
     /* DETECTION PANEL */
     #detpanel {
       position: fixed;
@@ -2430,13 +2590,13 @@
       <button class="btn bcam2 on" id="btn-iso" onclick="setView('iso')">📐 Iso</button>
       <button class="btn bcam2" id="btn-drive" onclick="setView('drive')">🎮 Follow</button>
       <div class="sep"></div>
-      <button class="btn bcamdet" onclick="toggleDetPanel()">📷 Camera</button>
+      <button class="btn bcamdet" style="display:none" onclick="toggleDetPanel()">📷 Camera</button>
       <button class="btn bamb" onclick="openModal()">🚑 Ambulance</button>
       <button class="btn" id="dntoggle" onclick="toggleDayNight()">🌙 Night</button>
       <div class="sep"></div>
 
       <button class="btn" id="voicetoggle" onclick="toggleVoice()">🎤 Voice</button>
-      <button class="btn" style="background:linear-gradient(135deg,#78350f,#b45309);border:1px solid #f59e0b"
+      <button class="btn" style="background:linear-gradient(135deg,#78350f,#b45309);border:1px solid #f59e0b;display:none"
         onclick="toggleImgBank()">📸 Image Bank</button>
       <button class="btn binc" onclick="triggerIncident()">⚠ Incident</button>
       <div class="sep"></div>
@@ -3036,7 +3196,7 @@
     // ═══════════════════════════════════════════════════════════════════
     //  GRID CONFIG & HELPERS
     // ═══════════════════════════════════════════════════════════════════
-    const GN = 5, BLK = 152, JR = 12, ARM = Math.floor((BLK - JR * 2) / 2);
+    const GN = 3, BLK = 152, JR = 12, ARM = Math.floor((BLK - JR * 2) / 2);
     const DIRS = ['N', 'S', 'E', 'W'], OPP = { N: 'S', S: 'N', E: 'W', W: 'E' };
     const TURNS = { N: ['N', 'E', 'W'], S: ['S', 'E', 'W'], E: ['E', 'N', 'S'], W: ['W', 'N', 'S'] };
     const LOFF = { S: [3, 7, 11], N: [-3, -7, -11], E: [-3, -7, -11], W: [3, 7, 11] };
@@ -3044,19 +3204,42 @@
     const ROAD_CAP = 12, STOP_P = 0.935, CAR_H = 0.045, SAFE_G = CAR_H * 2.2, BRAKE_G = CAR_H * 6;
     const SPD_CAR = 0.26, SPD_AMB = 0.70;  // 3× faster — ARM=64 so 0.26×64=16.6 u/s, amb=44.8 u/s
 
-    const AREAS = [['Rohini', 'Pitampura', 'Azadpur', 'Shlmr Bagh', 'Ashok Vihar'], ['Janakpuri', 'Rajouri Gdn', 'Karol Bagh', 'Patel Ngr', 'Paharganj'], ['Dwarka', 'Uttam Nagar', 'Connaught Pl', 'Lajpat Ngr', 'Okhla'], ['Palam', 'Mahipalpur', 'Saket', 'Kalkaji', 'Badarpur'], ['Gurgaon Bdr', 'Vasant Kunj', 'Chattarpur', 'Fbd Bdr', 'Mathura Rd']];
-    const TIER = [[2, 2, 3, 2, 2], [2, 3, 4, 3, 2], [2, 3, 5, 3, 2], [2, 2, 4, 3, 2], [1, 2, 2, 1, 1]];
-    const HOSPS = [{ gx: 2, gy: 0, name: 'Hindu Rao Hospital' }, { gx: 1, gy: 1, name: 'DDU Hospital' }, { gx: 2, gy: 1, name: 'RML Hospital' }, { gx: 3, gy: 1, name: 'Safdarjung Hospital' }, { gx: 0, gy: 2, name: 'Dwarka Hospital' }, { gx: 2, gy: 2, name: 'AIIMS New Delhi' }, { gx: 3, gy: 3, name: 'Apollo Hospital' }, { gx: 2, gy: 4, name: 'Fortis Hospital' }];
+    const AREAS = [['F', 'G', 'H'], ['E', 'B', 'D'], ['A', 'C', 'I']];
+    const TIER = [[2, 2, 3], [2, 3, 4], [2, 3, 5]];
+    const HOSPS = [{ gx: 1, gy: 0, name: 'Apollo Hospital' }, { gx: 1, gy: 1, name: 'Medicure Hospital' }, { gx: 2, gy: 1, name: 'KIMS Hospital' }, { gx: 0, gy: 2, name: 'Medicover Hospital' }, { gx: 2, gy: 2, name: 'AIIMS' }];
     const HM = {}; HOSPS.forEach(h => HM[h.gx + '_' + h.gy] = h);
 
-    function wpos(gx, gy) { return { wx: (gx - 2) * BLK, wz: (gy - 2) * BLK }; }
+    function wpos(gx, gy) { return { wx: (gx - 1) * BLK, wz: (gy - 1) * BLK }; }
     function apos(jx, jz, dir, lane, p) { const la = LOFF[dir][Math.min(2, Math.max(0, Math.round(lane)))], d = JR + ARM * (1 - p); if (dir === 'S') return { x: jx + la, y: 0, z: jz - d, ry: FACE.S }; if (dir === 'N') return { x: jx + la, y: 0, z: jz + d, ry: FACE.N }; if (dir === 'E') return { x: jx - d, y: 0, z: jz + la, ry: FACE.E }; return { x: jx + d, y: 0, z: jz + la, ry: FACE.W }; }
     function epos(jx, jz, dir, lane, p) { const la = LOFF[dir][Math.min(2, Math.max(0, Math.round(lane)))], d = JR + ARM * p; if (dir === 'S') return { x: jx + la, y: 0, z: jz + d, ry: FACE.S }; if (dir === 'N') return { x: jx + la, y: 0, z: jz - d, ry: FACE.N }; if (dir === 'E') return { x: jx + d, y: 0, z: jz + la, ry: FACE.E }; return { x: jx - d, y: 0, z: jz + la, ry: FACE.W }; }
     function ss(t) { return t * t * (3 - 2 * t); }
     function lerpa(a, b, t) { let d = b - a; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return a + d * t; }
     function jpos(jx, jz, ed, xd, fr, to, t) { const s = ss(t); let cx, cz; if (ed === xd) { cx = (fr.x + to.x) / 2; cz = (fr.z + to.z) / 2; } else if (ed === 'S' || ed === 'N') { cx = fr.x; cz = to.z; } else { cx = to.x; cz = fr.z; } return { x: (1 - s) * (1 - s) * fr.x + 2 * (1 - s) * s * cx + s * s * to.x, y: 0, z: (1 - s) * (1 - s) * fr.z + 2 * (1 - s) * s * cz + s * s * to.z, ry: lerpa(fr.ry, to.ry, s) }; }
     function setm(m, p) { m.position.set(p.x, p.y, p.z); m.rotation.y = p.ry; }
-    function bfs(a, b) { if (a === b) return [a]; const vis = new Set([a]), q = [[a, [a]]]; while (q.length) { const [c, path] = q.shift(); const j = JM[c]; if (!j) continue; for (const d of DIRS) { const n = j.nb[d]; if (!n || vis.has(n) || JM[n]?.blocked) continue; const np = [...path, n]; if (n === b) return np; vis.add(n); q.push([n, np]); } } return null; }
+    function bfs(a, b) {
+      if (a === b) return [a];
+      const dist = {}, prev = {}, q = new Set();
+      for (const id in JM) { dist[id] = Infinity; prev[id] = null; q.add(id); }
+      dist[a] = 0;
+      while (q.size > 0) {
+        let u = null, min = Infinity;
+        q.forEach(id => { if (dist[id] < min) { min = dist[id]; u = id; } });
+        if (!u || u === b) break;
+        q.delete(u);
+        const ju = JM[u];
+        for (const d of DIRS) {
+          const v = ju.nb[d];
+          if (!v || !q.has(v) || JM[v]?.blocked) continue;
+          const dens = JM[v].density();
+          const w = 1 + ((dens.N + dens.S + dens.E + dens.W) / 4) * 3;
+          if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; prev[v] = u; }
+        }
+      }
+      if (prev[b] === null) return null;
+      const path = []; let curr = b;
+      while (curr !== null) { path.unshift(curr); curr = prev[curr]; }
+      return path;
+    }
     function tdir(ja, jb) { for (const d of DIRS) if (ja.nb[d] === jb.id) return d; return null; }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -3108,7 +3291,7 @@
     }
     const junctions = [], JM = {};
     for (let gy = 0; gy < GN; gy++)for (let gx = 0; gx < GN; gx++) { const j = new Jct(gx, gy); junctions.push(j); JM[j.id] = j; }
-    let selJct = JM['2_2'];
+    let selJct = JM['1_1'];
 
     function updateMLForecast(d) {
       const pred = predictML(d.N, d.S, d.E, d.W);
@@ -4548,7 +4731,31 @@
         }
       }, '*');
     }
-    setInterval(_broadcastToParent, 1000);
+
+    // --- EXTERNAL COMMAND BRIDGE ---
+    window.addEventListener('message', e => {
+      if (!e.data || !e.data.cmd) return;
+      if (e.data.cmd === 'CAMERA') toggleDetPanel();
+      if (e.data.cmd === 'IMAGEBANK') toggleImgBank();
+      if (e.data.cmd === 'INCIDENT') triggerIncident();
+      
+      if (e.data.cmd === 'FOCUS') {
+        const id = e.data.tab;
+        document.body.className = id ? 'focus-' + id : '';
+        if (id === 'cam') {
+          document.getElementById('detpanel').style.display = 'block';
+          document.getElementById('imgbank').style.display = 'none';
+        } else if (id === 'img') {
+          document.getElementById('imgbank').style.display = 'block';
+          document.getElementById('detpanel').style.display = 'none';
+        } else if (id === 's') {
+          document.getElementById('detpanel').style.display = 'none';
+          document.getElementById('imgbank').style.display = 'none';
+        }
+      }
+    });
+
+    setInterval(_broadcastToParent, 250);
   </script>
 </body>
 

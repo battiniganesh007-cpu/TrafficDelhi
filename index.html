@@ -1141,6 +1141,41 @@
       .kpi-grid { grid-template-columns:1fr }
     }
 
+    .sim-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--td);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s ease;
+    }
+    .sim-btn:hover {
+      transform: translateY(-2px);
+      color: #fff;
+    }
+    .sim-btn.sim-cyan:hover {
+      border-color: var(--c);
+      background: rgba(0, 229, 255, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 229, 255, 0.2);
+    }
+    .sim-btn.sim-violet:hover {
+      border-color: var(--v);
+      background: rgba(124, 58, 237, 0.1);
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+    }
+    .sim-btn.sim-amber:hover {
+      border-color: var(--a);
+      background: rgba(245, 158, 11, 0.1);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+    }
+
     @keyframes fsi {
       from {
         opacity: 0;
@@ -1363,7 +1398,8 @@
     </div>
     <div id="tn"><button class="tb on" data-tab="h">Home</button><button class="tb"
         data-tab="s">Simulation</button><button class="tb" data-tab="a">Analytics</button><button class="tb"
-        data-tab="b">Before/After</button><button class="tb" data-tab="p">Prediction</button></div>
+        data-tab="b">Before/After</button><button class="tb" data-tab="p">Prediction</button><button class="tb"
+        data-tab="cam">Camera</button><button class="tb" data-tab="img">Image Bank</button></div>
     <div class="nr">
       <div class="lbg">
         <div class="ldt"></div>LIVE
@@ -1379,7 +1415,8 @@
   </nav>
   <div id="mmnav"><button class="tb on" data-tab="h">Home</button><button class="tb"
       data-tab="s">Simulation</button><button class="tb" data-tab="a">Analytics</button><button class="tb"
-      data-tab="b">Before/After</button><button class="tb" data-tab="p">Prediction</button></div>
+      data-tab="b">Before/After</button><button class="tb" data-tab="p">Prediction</button><button class="tb"
+      data-tab="cam">Camera</button><button class="tb" data-tab="img">Image Bank</button></div>
   <main id="ct">
     <section class="pnl on" id="pnh">
       <div class="hero">
@@ -1971,7 +2008,8 @@
       const panels = [...document.querySelectorAll('.pnl')];
       function go(id) {
         tabs.forEach(t => t.classList.toggle('on', t.dataset.tab === id));
-        panels.forEach(p => p.classList.toggle('on', p.id === 'pn' + id));
+        let pId = ['cam', 'img', 's'].includes(id) ? 'pns' : 'pn' + id;
+        panels.forEach(p => p.classList.toggle('on', p.id === pId));
         onTabSwitch(id);
       }
       tabs.forEach(t => t.addEventListener('click', () => { go(t.dataset.tab); document.getElementById('mmnav').classList.remove('op') }));
@@ -2063,11 +2101,21 @@
       if (id === 'b' && window._simData) _paintBeforeAfter(window._simData.beforeAfter);
       // Keep iframe loaded but visually hidden when not on simulation tab
       const frame = document.getElementById('sim-frame');
+      const simTabHeader = document.querySelector('#pns .smh');
+      
       if (frame) {
-        if (id === 's') {
+        if (['s', 'cam', 'img'].includes(id)) {
           frame.style.visibility = 'visible';
           frame.style.position   = 'relative';
           frame.style.pointerEvents = 'all';
+          
+          let headerHtml = '<div class="bld"></div> ';
+          if (id === 's') headerHtml += '🗺 Live Traffic Simulation';
+          else if (id === 'cam') { headerHtml += '📷 Camera Feed'; }
+          else if (id === 'img') { headerHtml += '🖼 Image Bank'; }
+          
+          if(simTabHeader) simTabHeader.innerHTML = headerHtml;
+          frame.contentWindow.postMessage({cmd: 'FOCUS', tab: id}, '*');
         } else {
           frame.style.visibility = 'hidden';
           frame.style.position   = 'absolute';
