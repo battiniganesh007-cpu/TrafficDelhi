@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -1031,6 +1031,151 @@
       margin-bottom: 20px
     }
 
+    /* ═══════ ANALYTICS DASHBOARD ═══════ */
+    #pna { position:relative; overflow:hidden }
+    #an-particles { position:absolute; inset:0; z-index:0; pointer-events:none }
+    .an-wrap { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:40px 24px 60px; display:flex; flex-direction:column; gap:22px }
+    .an-header { display:flex; align-items:center; gap:12px; margin-bottom:4px }
+    .an-header-dot { width:10px; height:10px; border-radius:50%; background:#00ff88; box-shadow:0 0 12px #00ff88; animation:blk 1.2s ease-in-out infinite }
+    .an-header h2 { font-size:22px; font-weight:700; letter-spacing:-0.3px }
+    .an-header h2 em { font-style:normal; background:linear-gradient(90deg,#00e5ff,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text }
+    .an-header-badge { font-size:10px; font-family:'JetBrains Mono',monospace; padding:3px 10px; border-radius:20px; background:rgba(0,229,255,.08); border:1px solid rgba(0,229,255,.25); color:#00e5ff; letter-spacing:1.5px; margin-left:auto; animation:pg 2s ease-in-out infinite }
+
+    /* KPI Cards */
+    .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px }
+    .kpi-card { background:rgba(6,15,30,.7); backdrop-filter:blur(18px); border:1px solid rgba(0,229,255,.1); border-radius:16px; padding:22px 20px; position:relative; overflow:hidden; transition:transform .25s,border-color .25s,box-shadow .25s; cursor:default }
+    .kpi-card:hover { transform:translateY(-6px); border-color:rgba(0,229,255,.35); box-shadow:0 12px 40px rgba(0,229,255,.1) }
+    .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:16px 16px 0 0 }
+    .kpi-card:nth-child(1)::before { background:linear-gradient(90deg,#00ff88,#00e5ff) }
+    .kpi-card:nth-child(2)::before { background:linear-gradient(90deg,#00e5ff,#7c3aed) }
+    .kpi-card:nth-child(3)::before { background:linear-gradient(90deg,#f59e0b,#ef4444) }
+    .kpi-card:nth-child(4)::before { background:linear-gradient(90deg,#7c3aed,#00ff88) }
+    .kpi-icon { font-size:28px; margin-bottom:8px; display:block; filter:drop-shadow(0 0 8px rgba(0,229,255,.4)) }
+    .kpi-label { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1.5px; color:#4a6080; text-transform:uppercase; margin-bottom:8px }
+    .kpi-value { font-size:36px; font-weight:800; font-family:'Montserrat',sans-serif; line-height:1; transition:color .3s }
+    .kpi-value.green { color:#00ff88; text-shadow:0 0 20px rgba(0,255,136,.3) }
+    .kpi-value.cyan { color:#00e5ff; text-shadow:0 0 20px rgba(0,229,255,.3) }
+    .kpi-value.amber { color:#f59e0b; text-shadow:0 0 20px rgba(245,158,11,.3) }
+    .kpi-value.violet { color:#a78bfa; text-shadow:0 0 20px rgba(167,139,250,.3) }
+    .kpi-value.red { color:#ef4444; text-shadow:0 0 20px rgba(239,68,68,.3) }
+    .kpi-delta { font-family:'JetBrains Mono',monospace; font-size:10px; margin-top:6px; color:#4a6080 }
+    .kpi-delta b { color:#00ff88 }
+    .kpi-sparkline { position:absolute; bottom:0; left:0; right:0; height:30px; opacity:.25 }
+
+    /* Live Traffic Graph */
+    .an-graph-card { background:rgba(6,15,30,.7); backdrop-filter:blur(18px); border:1px solid rgba(0,229,255,.1); border-radius:16px; padding:24px; position:relative; overflow:hidden }
+    .an-graph-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px }
+    .an-graph-title { font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px }
+    .an-graph-title .dot { width:6px; height:6px; border-radius:50%; background:#00ff88; box-shadow:0 0 8px #00ff88; animation:blk 1s ease-in-out infinite }
+    .an-graph-badge { font-family:'JetBrains Mono',monospace; font-size:9px; padding:3px 8px; border-radius:12px; background:rgba(0,229,255,.08); border:1px solid rgba(0,229,255,.2); color:#00e5ff }
+    #an-flow-svg { display:block; width:100%; filter:drop-shadow(0 0 6px rgba(0,229,255,.4)) }
+
+    /* Two-col layout */
+    .an-split { display:grid; grid-template-columns:1fr 1fr; gap:16px }
+
+    /* Progress Bars Panel */
+    .an-progress-card { background:rgba(6,15,30,.7); backdrop-filter:blur(18px); border:1px solid rgba(0,229,255,.1); border-radius:16px; padding:24px }
+    .an-progress-title { font-size:13px; font-weight:600; margin-bottom:18px; display:flex; align-items:center; gap:8px }
+    .an-pb { margin-bottom:16px }
+    .an-pb:last-child { margin-bottom:0 }
+    .an-pb-header { display:flex; justify-content:space-between; margin-bottom:6px }
+    .an-pb-label { font-family:'JetBrains Mono',monospace; font-size:10px; color:#4a6080; letter-spacing:.5px }
+    .an-pb-val { font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:#f0f4ff }
+    .an-pb-track { height:10px; background:rgba(255,255,255,.04); border-radius:5px; overflow:hidden; position:relative }
+    .an-pb-fill { height:100%; border-radius:5px; transition:width 1s ease; position:relative; overflow:hidden }
+    .an-pb-fill::after { content:''; position:absolute; top:0; left:-100%; width:60%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent); animation:shim 2s infinite }
+    .an-pb-fill.co2 { background:linear-gradient(90deg,#00ff88,#00e5ff); box-shadow:0 0 12px rgba(0,255,136,.3) }
+    .an-pb-fill.fuel { background:linear-gradient(90deg,#00e5ff,#7c3aed); box-shadow:0 0 12px rgba(0,229,255,.3) }
+    .an-pb-fill.idle { background:linear-gradient(90deg,#f59e0b,#ef4444); box-shadow:0 0 12px rgba(245,158,11,.3) }
+    .an-pb-fill.eff { background:linear-gradient(90deg,#7c3aed,#00ff88); box-shadow:0 0 12px rgba(124,58,237,.3) }
+
+    /* AI Insight Panel */
+    .an-insight-card { background:rgba(6,15,30,.7); backdrop-filter:blur(18px); border:1px solid rgba(124,58,237,.2); border-radius:16px; padding:24px; position:relative; overflow:hidden }
+    .an-insight-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,#7c3aed,#00e5ff,#00ff88); animation:an-insight-line 3s linear infinite }
+    @keyframes an-insight-line { 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
+    .an-insight-title { font-size:13px; font-weight:600; margin-bottom:14px; display:flex; align-items:center; gap:8px }
+    .an-insight-title .brain { animation:brth 2s ease-in-out infinite }
+    .an-insight-messages { min-height:110px; position:relative }
+    .an-insight-msg { font-family:'JetBrains Mono',monospace; font-size:11px; line-height:1.8; padding:8px 12px; border-radius:8px; background:rgba(255,255,255,.02); border-left:3px solid rgba(0,229,255,.4); margin-bottom:8px; opacity:0; transform:translateX(-10px); transition:opacity .4s,transform .4s; color:#94a3b8 }
+    .an-insight-msg.visible { opacity:1; transform:translateX(0) }
+    .an-insight-msg b { color:#00e5ff }
+    .an-insight-msg .warn { color:#f59e0b }
+    .an-insight-msg .good { color:#00ff88 }
+    .an-insight-msg .em { color:#f472b6 }
+    .an-insight-typing { font-family:'JetBrains Mono',monospace; font-size:10px; color:#4a6080; display:flex; align-items:center; gap:6px; margin-top:8px }
+    .an-insight-typing .dots span { display:inline-block; width:4px; height:4px; border-radius:50%; background:#4a6080; margin:0 1px; animation:an-dot-bounce .6s ease infinite }
+    .an-insight-typing .dots span:nth-child(2) { animation-delay:.15s }
+    .an-insight-typing .dots span:nth-child(3) { animation-delay:.3s }
+    @keyframes an-dot-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+
+    /* Predictive Chart */
+    .an-predict-card { background:rgba(6,15,30,.7); backdrop-filter:blur(18px); border:1px solid rgba(124,58,237,.15); border-radius:16px; padding:24px }
+    .an-predict-title { font-size:13px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px }
+    #an-predict-svg { display:block; width:100%; filter:drop-shadow(0 0 4px rgba(124,58,237,.3)) }
+
+    /* QAOA State Panel */
+    .an-qaoa-card { background:rgba(6,15,30,.7); backdrop-filter:blur(18px); border:1px solid rgba(124,58,237,.2); border-radius:16px; padding:24px }
+    .an-qaoa-title { font-size:13px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px }
+    .an-qaoa-grid { display:flex; flex-direction:column; gap:10px }
+    .an-qubit-row { display:flex; align-items:center; gap:10px }
+    .an-qubit-label { font-family:'JetBrains Mono',monospace; font-size:11px; color:#a78bfa; width:30px; flex-shrink:0 }
+    .an-qubit-track { flex:1; height:14px; background:rgba(124,58,237,.08); border-radius:7px; overflow:hidden; border:1px solid rgba(124,58,237,.15) }
+    .an-qubit-fill { height:100%; border-radius:7px; background:linear-gradient(90deg,#7c3aed,#00e5ff); transition:width .5s ease; box-shadow:0 0 10px rgba(124,58,237,.4); position:relative }
+    .an-qubit-fill::after { content:''; position:absolute; top:0; right:0; width:4px; height:100%; background:#fff; border-radius:0 7px 7px 0; opacity:.6; animation:pg 1.5s ease-in-out infinite }
+    .an-qubit-pct { font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:#c4b5fd; width:36px; text-align:right }
+    .an-qaoa-states { display:grid; grid-template-columns:repeat(4,1fr); gap:4px; margin-top:14px }
+    .an-qs { height:26px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:8px; font-weight:700; border:1px solid rgba(124,58,237,.15); background:rgba(124,58,237,.04); color:#a78bfa; transition:all .3s }
+    .an-qs.hot { background:rgba(124,58,237,.35); border-color:#7c3aed; color:#ede9fe; box-shadow:0 0 8px rgba(124,58,237,.3) }
+    .an-qaoa-result { font-family:'JetBrains Mono',monospace; font-size:10px; color:#a78bfa; margin-top:12px; padding:8px 12px; background:rgba(124,58,237,.06); border-radius:8px; border:1px solid rgba(124,58,237,.12); line-height:1.6 }
+
+    /* Footer bar */
+    .an-footer { display:flex; justify-content:center; gap:24px; padding:12px 0; font-family:'JetBrains Mono',monospace; font-size:10px; color:#4a6080 }
+    .an-footer span b { color:#00e5ff }
+
+    @media(max-width:768px) {
+      .kpi-grid { grid-template-columns:1fr 1fr }
+      .an-split { grid-template-columns:1fr }
+      .an-qaoa-states { grid-template-columns:repeat(4,1fr) }
+    }
+    @media(max-width:480px) {
+      .kpi-grid { grid-template-columns:1fr }
+    }
+
+    .sim-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--td);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s ease;
+    }
+    .sim-btn:hover {
+      transform: translateY(-2px);
+      color: #fff;
+    }
+    .sim-btn.sim-cyan:hover {
+      border-color: var(--c);
+      background: rgba(0, 229, 255, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 229, 255, 0.2);
+    }
+    .sim-btn.sim-violet:hover {
+      border-color: var(--v);
+      background: rgba(124, 58, 237, 0.1);
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+    }
+    .sim-btn.sim-amber:hover {
+      border-color: var(--a);
+      background: rgba(245, 158, 11, 0.1);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+    }
+
     @keyframes fsi {
       from {
         opacity: 0;
@@ -1253,7 +1398,8 @@
     </div>
     <div id="tn"><button class="tb on" data-tab="h">Home</button><button class="tb"
         data-tab="s">Simulation</button><button class="tb" data-tab="a">Analytics</button><button class="tb"
-        data-tab="b">Before/After</button><button class="tb" data-tab="p">Prediction</button></div>
+        data-tab="b">Before/After</button><button class="tb" data-tab="p">Prediction</button><button class="tb"
+        data-tab="cam">Camera</button><button class="tb" data-tab="img">Image Bank</button></div>
     <div class="nr">
       <div class="lbg">
         <div class="ldt"></div>LIVE
@@ -1269,7 +1415,8 @@
   </nav>
   <div id="mmnav"><button class="tb on" data-tab="h">Home</button><button class="tb"
       data-tab="s">Simulation</button><button class="tb" data-tab="a">Analytics</button><button class="tb"
-      data-tab="b">Before/After</button><button class="tb" data-tab="p">Prediction</button></div>
+      data-tab="b">Before/After</button><button class="tb" data-tab="p">Prediction</button><button class="tb"
+      data-tab="cam">Camera</button><button class="tb" data-tab="img">Image Bank</button></div>
   <main id="ct">
     <section class="pnl on" id="pnh">
       <div class="hero">
@@ -1279,7 +1426,8 @@
               style="animation-delay:.38s">Traffic</span> <span class="wd gw"
               style="animation-delay:.46s">Optimization</span><br><span class="wd"
               style="animation-delay:.54s">&amp;</span> <span class="wd" style="animation-delay:.62s">Emergency</span>
-            <span class="wd gw" style="animation-delay:.7s">Grid</span></h1>
+            <span class="wd gw" style="animation-delay:.7s">Grid</span>
+          </h1>
           <p class="hsu">Predictive signal control with zero-delay emergency response</p>
           <div class="hbt"><button class="bpr" id="bls">🚀 Launch Simulation</button><button class="bsc" id="bla">📊
               View Analytics</button></div>
@@ -1607,87 +1755,143 @@
         <div class="smh">
           <div class="bld"></div> 🗺 Live Traffic Simulation
         </div>
-        <div class="gl smc" style="padding:0; overflow:hidden;">
-
-          <iframe src="CODE_MANIACS_DELHI.html" style="width:100%; height:500px; border:none;">
-          </iframe>
-
-        </div>
-        <div class="smk">
-          <div class="chp">
-            <div class="chv" id="chv1">247</div>
-            <div class="chl">Vehicles Active</div>
-          </div>
-          <div class="chp">
-            <div class="chv" id="chv2">25</div>
-            <div class="chl">Junctions Live</div>
-          </div>
-          <div class="chp">
-            <div class="chv" id="chv3">142</div>
-            <div class="chl">Phase Cycles</div>
-          </div>
-          <div class="chp">
-            <div class="chv">8.3kg</div>
-            <div class="chl">CO₂ Saved</div>
-          </div>
-        </div>
-        <div class="smb"><button class="bgb">▶ Start</button><button class="brb">■ Stop</button></div>
       </div>
+      <iframe
+        id="sim-frame"
+        src="CODE_MANIACS_DELHI.html"
+        style="width:100%;height:calc(100vh - 80px);border:none;display:block;"
+        allow="camera; microphone; autoplay"
+      ></iframe>
     </section>
     <section class="pnl" id="pna">
-      <div class="anw">
-        <div class="gl cpn">
-          <div class="clb">Traffic Flow (last 40s)</div><svg width="100%" height="90" viewBox="0 0 800 90"
-            preserveAspectRatio="none">
-            <polyline
-              points="0,75 50,65 100,55 150,70 200,45 250,30 300,50 350,40 400,58 450,35 500,28 550,50 600,65 650,45 700,30 750,55 800,45"
-              fill="rgba(0,229,255,.08)" stroke="#00e5ff" stroke-width="2" />
+      <canvas id="an-particles"></canvas>
+      <div class="an-wrap">
+        <!-- Header -->
+        <div class="an-header">
+          <div class="an-header-dot"></div>
+          <h2>📊 <em>AI Analytics</em> Command Center</h2>
+          <span class="an-header-badge" id="an-status">● LIVE DATA</span>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-icon">⏱</span>
+            <div class="kpi-label">Avg Wait Time</div>
+            <div class="kpi-value green" id="kpi-wait">—</div>
+            <div class="kpi-delta">Target: <b>&lt;15s</b></div>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-icon">📈</span>
+            <div class="kpi-label">Throughput</div>
+            <div class="kpi-value cyan" id="kpi-throughput">—</div>
+            <div class="kpi-delta">Moving: <b>optimizing</b></div>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-icon">🚗</span>
+            <div class="kpi-label">Stopped Vehicles</div>
+            <div class="kpi-value amber" id="kpi-stopped">—</div>
+            <div class="kpi-delta">Wait saved: <b id="kpi-waitsaved">—</b></div>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-icon">⚡</span>
+            <div class="kpi-label">Signal Efficiency</div>
+            <div class="kpi-value violet" id="kpi-eff">—</div>
+            <div class="kpi-delta">QAOA: <b>active</b></div>
+          </div>
+        </div>
+
+        <!-- Live Traffic Flow Graph -->
+        <div class="an-graph-card">
+          <div class="an-graph-header">
+            <div class="an-graph-title"><span class="dot"></span> Live Traffic Flow (last 40s)</div>
+            <span class="an-graph-badge" id="an-flow-rate">0 veh/s</span>
+          </div>
+          <svg id="an-flow-svg" width="100%" height="100" viewBox="0 0 800 100" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="an-flow-grad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#00e5ff"/>
+                <stop offset="100%" stop-color="#7c3aed"/>
+              </linearGradient>
+              <linearGradient id="an-flow-area" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#00e5ff" stop-opacity=".18"/>
+                <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <polygon id="an-flow-area-poly" points="0,100 800,100" fill="url(#an-flow-area)"/>
+            <polyline id="an-flow-line" points="0,80 800,80" fill="none" stroke="url(#an-flow-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <div class="ag4">
-          <div class="gl cpn">
-            <div class="clb">Avg Wait Time</div>
-            <div style="font-size:28px;font-weight:800;color:var(--g);font-family:'Montserrat',sans-serif">24s</div>
+
+        <!-- Split: Progress Bars + AI Insight -->
+        <div class="an-split">
+          <!-- Environmental Impact -->
+          <div class="an-progress-card">
+            <div class="an-progress-title">🌿 Environmental Impact</div>
+            <div class="an-pb">
+              <div class="an-pb-header"><span class="an-pb-label">CO₂ Saved</span><span class="an-pb-val" id="pb-co2">0.00t</span></div>
+              <div class="an-pb-track"><div class="an-pb-fill co2" id="pbf-co2" style="width:0%"></div></div>
+            </div>
+            <div class="an-pb">
+              <div class="an-pb-header"><span class="an-pb-label">Fuel Saved</span><span class="an-pb-val" id="pb-fuel">0.00kL</span></div>
+              <div class="an-pb-track"><div class="an-pb-fill fuel" id="pbf-fuel" style="width:0%"></div></div>
+            </div>
+            <div class="an-pb">
+              <div class="an-pb-header"><span class="an-pb-label">Idle Reduction</span><span class="an-pb-val" id="pb-idle">0%</span></div>
+              <div class="an-pb-track"><div class="an-pb-fill idle" id="pbf-idle" style="width:0%"></div></div>
+            </div>
+            <div class="an-pb">
+              <div class="an-pb-header"><span class="an-pb-label">System Efficiency</span><span class="an-pb-val" id="pb-eff">0%</span></div>
+              <div class="an-pb-track"><div class="an-pb-fill eff" id="pbf-eff" style="width:0%"></div></div>
+            </div>
           </div>
-          <div class="gl cpn">
-            <div class="clb">Throughput</div>
-            <div style="font-size:28px;font-weight:800;color:var(--c);font-family:'Montserrat',sans-serif">847/hr</div>
-          </div>
-          <div class="gl cpn">
-            <div class="clb">Stopped Vehicles</div>
-            <div style="font-size:28px;font-weight:800;color:var(--a);font-family:'Montserrat',sans-serif">12</div>
-          </div>
-          <div class="gl cpn">
-            <div class="clb">Signal Efficiency</div>
-            <div style="font-size:28px;font-weight:800;color:var(--g);font-family:'Montserrat',sans-serif">94%</div>
+
+          <!-- AI Insight Panel -->
+          <div class="an-insight-card">
+            <div class="an-insight-title"><span class="brain">🤖</span> AI Intelligence Feed</div>
+            <div class="an-insight-messages" id="an-insights"></div>
+            <div class="an-insight-typing">AI analyzing <div class="dots"><span></span><span></span><span></span></div></div>
           </div>
         </div>
-        <div class="gl cpn">
-          <div class="clb">CO₂ Impact</div>
-          <div class="pbw">
-            <div class="pbl"><span>CO₂ Saved</span><span>2.4t</span></div>
-            <div class="pbt">
-              <div class="pbf" data-w="78"></div>
-            </div>
+
+        <!-- Split: Predictive Chart + QAOA State -->
+        <div class="an-split">
+          <!-- Predictive Chart -->
+          <div class="an-predict-card">
+            <div class="an-predict-title">🔮 Predictive Traffic (next 15 min)</div>
+            <svg id="an-predict-svg" width="100%" height="100" viewBox="0 0 800 100" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="an-pred-area" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#7c3aed" stop-opacity=".15"/>
+                  <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <polygon id="an-pred-area-poly" points="0,100 800,100" fill="url(#an-pred-area)"/>
+              <polyline id="an-pred-line" points="0,80 800,80" fill="none" stroke="#a78bfa" stroke-width="2" stroke-dasharray="6,4" stroke-linecap="round"/>
+              <line x1="400" y1="0" x2="400" y2="100" stroke="rgba(248,113,113,.4)" stroke-width="1" stroke-dasharray="3,3"/>
+              <text x="405" y="12" fill="#f87171" font-size="9" font-family="JetBrains Mono,monospace">NOW</text>
+            </svg>
           </div>
-          <div class="pbw">
-            <div class="pbl"><span>Fuel Saved</span><span>1.1kL</span></div>
-            <div class="pbt">
-              <div class="pbf" data-w="65"></div>
+
+          <!-- QAOA State -->
+          <div class="an-qaoa-card">
+            <div class="an-qaoa-title">⚛ QAOA Quantum State</div>
+            <div class="an-qaoa-grid">
+              <div class="an-qubit-row"><span class="an-qubit-label">|q₀⟩</span><div class="an-qubit-track"><div class="an-qubit-fill" id="aq0" style="width:50%"></div></div><span class="an-qubit-pct" id="aqp0">50%</span></div>
+              <div class="an-qubit-row"><span class="an-qubit-label">|q₁⟩</span><div class="an-qubit-track"><div class="an-qubit-fill" id="aq1" style="width:50%"></div></div><span class="an-qubit-pct" id="aqp1">50%</span></div>
+              <div class="an-qubit-row"><span class="an-qubit-label">|q₂⟩</span><div class="an-qubit-track"><div class="an-qubit-fill" id="aq2" style="width:50%"></div></div><span class="an-qubit-pct" id="aqp2">50%</span></div>
+              <div class="an-qubit-row"><span class="an-qubit-label">|q₃⟩</span><div class="an-qubit-track"><div class="an-qubit-fill" id="aq3" style="width:50%"></div></div><span class="an-qubit-pct" id="aqp3">50%</span></div>
             </div>
+            <div class="an-qaoa-states" id="an-qaoa-states"></div>
+            <div class="an-qaoa-result" id="an-qaoa-result">Awaiting quantum optimization data…</div>
           </div>
-          <div class="pbw">
-            <div class="pbl"><span>Idle Cut</span><span>43%</span></div>
-            <div class="pbt">
-              <div class="pbf" data-w="43"></div>
-            </div>
-          </div>
-          <div class="pbw">
-            <div class="pbl"><span>Efficiency</span><span>94%</span></div>
-            <div class="pbt">
-              <div class="pbf" data-w="94"></div>
-            </div>
-          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="an-footer">
+          <span>Update Rate: <b>1s</b></span>
+          <span>Source: <b>QAOA + TF.js</b></span>
+          <span>Junctions: <b>25</b></span>
         </div>
       </div>
     </section>
@@ -1804,8 +2008,9 @@
       const panels = [...document.querySelectorAll('.pnl')];
       function go(id) {
         tabs.forEach(t => t.classList.toggle('on', t.dataset.tab === id));
-        panels.forEach(p => p.classList.toggle('on', p.id === 'pn' + id));
-        if (id === 'a') setTimeout(() => document.querySelectorAll('.pbf').forEach(f => f.style.width = (f.dataset.w || 50) + '%'), 120);
+        let pId = ['cam', 'img', 's'].includes(id) ? 'pns' : 'pn' + id;
+        panels.forEach(p => p.classList.toggle('on', p.id === pId));
+        onTabSwitch(id);
       }
       tabs.forEach(t => t.addEventListener('click', () => { go(t.dataset.tab); document.getElementById('mmnav').classList.remove('op') }));
       document.getElementById('bls').onclick = () => go('s');
@@ -1890,7 +2095,234 @@
       const ids = ['chv1', 'chv2', 'chv3'], base = [247, 25, 142];
       setInterval(() => ids.forEach((id, i) => { const el = document.getElementById(id); if (el) el.textContent = base[i] + Math.floor(Math.random() * 10 - 5); }), 2200);
     }
-    initTabs(); initCounters(); initBackgroundBlobs(); initAmbulanceAnimation(); initQubitPulse(); initPredictionTimeline(); initSimChips();
+    function onTabSwitch(id) {
+      // Paint immediately on tab open using cached data
+      if (id === 'a' && window._simData) _paintAnalytics(window._simData.analytics);
+      if (id === 'b' && window._simData) _paintBeforeAfter(window._simData.beforeAfter);
+      // Keep iframe loaded but visually hidden when not on simulation tab
+      const frame = document.getElementById('sim-frame');
+      const simTabHeader = document.querySelector('#pns .smh');
+      
+      if (frame) {
+        if (['s', 'cam', 'img'].includes(id)) {
+          frame.style.visibility = 'visible';
+          frame.style.position   = 'relative';
+          frame.style.pointerEvents = 'all';
+          
+          let headerHtml = '<div class="bld"></div> ';
+          if (id === 's') headerHtml += '🗺 Live Traffic Simulation';
+          else if (id === 'cam') { headerHtml += '📷 Camera Feed'; }
+          else if (id === 'img') { headerHtml += '🖼 Image Bank'; }
+          
+          if(simTabHeader) simTabHeader.innerHTML = headerHtml;
+          frame.contentWindow.postMessage({cmd: 'FOCUS', tab: id}, '*');
+        } else {
+          frame.style.visibility = 'hidden';
+          frame.style.position   = 'absolute';
+          frame.style.pointerEvents = 'none';
+        }
+      }
+    }
+    window.addEventListener('message', function(e) {
+      if (!e.data || e.data.type !== 'SIM_DATA') return;
+      window._simData = e.data; // cache latest payload
+      // If Analytics tab is currently active, refresh immediately
+      if (document.querySelector('.tb[data-tab="a"]')?.classList.contains('on')) {
+        _paintAnalytics(e.data.analytics);
+      }
+      // If Before/After tab is currently active, refresh immediately
+      if (document.querySelector('.tb[data-tab="b"]')?.classList.contains('on')) {
+        _paintBeforeAfter(e.data.beforeAfter);
+      }
+    });
+    // ═══════ ANALYTICS PARTICLE BACKGROUND ═══════
+    (function initAnParticles() {
+      const cv = document.getElementById('an-particles');
+      if (!cv) return;
+      const cx = cv.getContext('2d');
+      const particles = [];
+      function resize() { const r = cv.parentElement.getBoundingClientRect(); cv.width = r.width; cv.height = r.height; }
+      resize(); window.addEventListener('resize', resize);
+      for (let i = 0; i < 60; i++) particles.push({ x: Math.random() * 2000, y: Math.random() * 2000, vx: (Math.random() - .5) * .3, vy: (Math.random() - .5) * .3, r: Math.random() * 1.5 + .5 });
+      (function draw() {
+        cx.clearRect(0, 0, cv.width, cv.height);
+        particles.forEach(p => {
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0) p.x = cv.width; if (p.x > cv.width) p.x = 0;
+          if (p.y < 0) p.y = cv.height; if (p.y > cv.height) p.y = 0;
+          cx.beginPath(); cx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          cx.fillStyle = 'rgba(0,229,255,.12)'; cx.fill();
+        });
+        // Draw faint connections
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120) {
+              cx.beginPath(); cx.moveTo(particles[i].x, particles[i].y); cx.lineTo(particles[j].x, particles[j].y);
+              cx.strokeStyle = `rgba(0,229,255,${(.08 * (1 - dist / 120)).toFixed(3)})`; cx.lineWidth = .5; cx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(draw);
+      })();
+    })();
+
+    // ═══════ QAOA STATE GRID INIT ═══════
+    (function initAnQaoa() {
+      const grid = document.getElementById('an-qaoa-states');
+      if (!grid || grid.children.length) return;
+      for (let i = 0; i < 16; i++) {
+        const d = document.createElement('div'); d.className = 'an-qs';
+        d.textContent = i.toString(2).padStart(4, '0'); grid.appendChild(d);
+      }
+    })();
+
+    // ═══════ AI INSIGHT ENGINE ═══════
+    const _insightPool = [
+      { icon: '⚠', cls: 'warn', text: 'High congestion detected — <b>optimizing signals</b>' },
+      { icon: '✅', cls: 'good', text: 'Traffic flow <b>optimized</b> successfully' },
+      { icon: '🚑', cls: 'em',   text: 'Emergency corridor <b>activated</b> — green wave deployed' },
+      { icon: '🔄', cls: '',     text: 'Adjusting signal timing <b>dynamically</b>' },
+      { icon: '⚛',  cls: 'good', text: 'QAOA quantum optimization cycle <b>complete</b>' },
+      { icon: '📊', cls: '',     text: 'Density analysis: <b>re-balancing</b> lane distribution' },
+      { icon: '🧠', cls: 'good', text: 'TF.js model predicting <b>next 15-min</b> traffic surge' },
+      { icon: '🌿', cls: 'good', text: 'CO₂ reduction target <b>on track</b> — idle cut active' },
+      { icon: '⚡', cls: 'warn', text: 'Peak hour detected — <b>adaptive timing</b> engaged' },
+      { icon: '🛣', cls: '',     text: 'Lane-level density monitoring <b>active</b> on 25 junctions' },
+      { icon: '📡', cls: 'good', text: 'V2I signal sync <b>operational</b> — latency <2ms' },
+      { icon: '🎯', cls: 'good', text: 'Signal phase allocation <b>optimized</b> by QAOA' }
+    ];
+    let _insightIdx = 0;
+    function _rotateInsight() {
+      const container = document.getElementById('an-insights');
+      if (!container) return;
+      const msgs = container.querySelectorAll('.an-insight-msg');
+      if (msgs.length >= 3) { const oldest = msgs[0]; oldest.style.opacity = '0'; oldest.style.transform = 'translateX(-10px)'; setTimeout(() => oldest.remove(), 400); }
+      const item = _insightPool[_insightIdx % _insightPool.length]; _insightIdx++;
+      const div = document.createElement('div'); div.className = 'an-insight-msg';
+      div.innerHTML = `<span class="${item.cls}">${item.icon}</span> ${item.text}`;
+      container.appendChild(div);
+      requestAnimationFrame(() => requestAnimationFrame(() => div.classList.add('visible')));
+    }
+    // Rotate insights
+    setInterval(_rotateInsight, 3500);
+    _rotateInsight(); setTimeout(_rotateInsight, 800); setTimeout(_rotateInsight, 1600);
+
+    // ═══════ PREDICTIVE CHART ANIMATION ═══════
+    let _predPhase = 0;
+    function _animatePredictive() {
+      _predPhase += 0.03;
+      const line = document.getElementById('an-pred-line');
+      const area = document.getElementById('an-pred-area-poly');
+      if (!line) return;
+      const W = 800, H = 100, pts = [];
+      for (let i = 0; i <= 40; i++) {
+        const x = (i / 40) * W;
+        const base = 50 + 20 * Math.sin(_predPhase + i * 0.25) + 10 * Math.cos(_predPhase * 0.7 + i * 0.4);
+        const y = Math.max(5, Math.min(95, base));
+        pts.push(x.toFixed(1) + ',' + y.toFixed(1));
+      }
+      line.setAttribute('points', pts.join(' '));
+      area.setAttribute('points', '0,100 ' + pts.join(' ') + ' 800,100');
+    }
+    setInterval(_animatePredictive, 80);
+
+    // ═══════ QAOA QUBIT PULSE ═══════
+    setInterval(function() {
+      for (let i = 0; i < 4; i++) {
+        const fill = document.getElementById('aq' + i);
+        const pct = document.getElementById('aqp' + i);
+        if (fill) {
+          const v = Math.min(95, Math.max(10, 50 + (Math.random() - .5) * 60));
+          fill.style.width = v.toFixed(0) + '%';
+          if (pct) pct.textContent = v.toFixed(0) + '%';
+        }
+      }
+      // Light up random states
+      const states = document.querySelectorAll('#an-qaoa-states .an-qs');
+      states.forEach(s => s.classList.remove('hot'));
+      const hotCount = 2 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < hotCount; i++) { const idx = Math.floor(Math.random() * states.length); states[idx]?.classList.add('hot'); }
+      // Update result text
+      const res = document.getElementById('an-qaoa-result');
+      if (res && window._simData) {
+        const ba = window._simData.beforeAfter;
+        if (ba) res.textContent = ba.summary || 'QAOA optimization active…';
+      }
+    }, 1800);
+
+    // ═══════ MAIN PAINT ANALYTICS ═══════
+    function _paintAnalytics(d) {
+      if (!d) return;
+      // KPI Cards
+      const kw = document.getElementById('kpi-wait');
+      const kt = document.getElementById('kpi-throughput');
+      const ks = document.getElementById('kpi-stopped');
+      const ke = document.getElementById('kpi-eff');
+      if (kw) { kw.textContent = d.avgWait; kw.className = 'kpi-value ' + (parseInt(d.avgWait) > 20 ? 'red' : parseInt(d.avgWait) > 10 ? 'amber' : 'green'); }
+      if (kt) { kt.textContent = d.movingPct; }
+      if (ks) { ks.textContent = d.stopped; ks.className = 'kpi-value ' + (d.stopped > 50 ? 'red' : d.stopped > 20 ? 'amber' : 'green'); }
+      if (ke) { ke.textContent = d.waitSaved; }
+      const kws = document.getElementById('kpi-waitsaved');
+      if (kws) kws.textContent = d.waitSaved;
+
+      // Traffic flow graph
+      if (d.flowHist && d.flowHist.length > 1) {
+        const line = document.getElementById('an-flow-line');
+        const area = document.getElementById('an-flow-area-poly');
+        if (line) {
+          const W = 800, H = 100, max = Math.max(...d.flowHist, 1);
+          const pts = d.flowHist.map((v, i) => {
+            const x = (i / (d.flowHist.length - 1)) * W;
+            const y = H - (v / max) * (H - 10);
+            return x.toFixed(1) + ',' + y.toFixed(1);
+          });
+          line.setAttribute('points', pts.join(' '));
+          if (area) area.setAttribute('points', '0,100 ' + pts.join(' ') + ' 800,100');
+        }
+        // Update flow rate badge
+        const rate = document.getElementById('an-flow-rate');
+        if (rate) rate.textContent = d.flowHist[d.flowHist.length - 1] + ' veh/s';
+      }
+
+      // Progress Bars
+      const co2Max = 5, fuelMax = 2, idleMax = 60;
+      const barMap = [
+        { fillId: 'pbf-co2', valId: 'pb-co2', val: d.co2Saved, max: co2Max, label: (d.co2Saved||0).toFixed(2) + 't' },
+        { fillId: 'pbf-fuel', valId: 'pb-fuel', val: d.fuelSaved, max: fuelMax, label: (d.fuelSaved||0).toFixed(2) + 'kL' },
+        { fillId: 'pbf-idle', valId: 'pb-idle', val: d.idleCut, max: idleMax, label: Math.round(d.idleCut||0) + '%' },
+        { fillId: 'pbf-eff',  valId: 'pb-eff',  val: d.sigEff, max: 100, label: Math.round(d.sigEff||0) + '%' }
+      ];
+      barMap.forEach(b => {
+        const fill = document.getElementById(b.fillId);
+        const val = document.getElementById(b.valId);
+        const pct = Math.min(100, ((b.val || 0) / b.max) * 100);
+        if (fill) fill.style.width = pct + '%';
+        if (val) val.textContent = b.label;
+      });
+
+      // Vehicle type counts for insight
+      if (d.vehTypes) {
+        const total = Object.values(d.vehTypes).reduce((a, b) => a + b, 0);
+        const status = document.getElementById('an-status');
+        if (status) status.textContent = '● ' + total + ' VEHICLES TRACKED';
+      }
+    }
+    function _paintBeforeAfter(d) {
+      if (!d) return;
+      // QAOA ADAPTIVE column — find .afr rows
+      const afterRows = document.querySelectorAll('#pnb .bap.afr .barw');
+      const liveVals = [d.ourWait, d.ourEff, d.ourMoving + '/hr', d.ourCO2];
+      afterRows.forEach((row, i) => {
+        const val = row.querySelector('.vgd');
+        if (val && liveVals[i] !== undefined) val.textContent = liveVals[i];
+      });
+      // Improvement percentage
+      const bai = document.querySelector('#pnb .bai');
+      if (bai) bai.textContent = '↑ ' + (d.improvePct || 0) + '% overall efficiency improvement';
+    }
+    initTabs(); initCounters(); initBackgroundBlobs(); initAmbulanceAnimation(); initQubitPulse(); initPredictionTimeline();
     document.querySelectorAll('.wd').forEach((w, i) => { w.style.animation = `fsi 0.5s ${.3 + i * .08}s ease forwards`; });
   </script>
 </body>
