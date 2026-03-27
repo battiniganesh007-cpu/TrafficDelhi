@@ -3328,7 +3328,7 @@
         v.erl += (v.exitLane - v.erl) * Math.min(1, 5 * dt);
         if (v.prog >= 1.0) {
           if (v.isAmb && v.route) { const ci = v.route.indexOf(v.jctId); if (ci >= v.route.length - 1) { slog('🚑 Arrived: ' + j.name, 'G'); EM.arrived(); killV(v); return; } const nxtId = v.route[ci + 1]; v.jctId = nxtId; v.dir = v.exitDir; v.prog = 0; v.phase = 'approach'; v.jt = 0; v.exitDir = null; EM.onEnter(v); return; }
-          else { const nid = j.nb[v.exitDir]; if (nid && JM[nid] && !JM[nid].blocked && Math.random() > .2) { v.jctId = nid; v.dir = OPP[v.exitDir]; v.prog = 0; v.phase = 'approach'; v.jt = 0; v.exitDir = null; } else killV(v); return; }
+          else { const nid = j.nb[v.exitDir]; if (nid && JM[nid] && !JM[nid].blocked && Math.random() > .2) { v.jctId = nid; v.dir = v.exitDir; v.prog = 0; v.phase = 'approach'; v.jt = 0; v.exitDir = null; } else killV(v); return; }
         }
       }
       if (v.phase === 'approach') setm(v.mesh, apos(jx, jz, v.dir, v.rl, v.prog));
@@ -3370,7 +3370,12 @@
       active: false, v: null, path: [], startT: 0, cleared: 0,
       activate(v, path) {
         this.active = true; this.v = v; this.path = path; this.startT = Date.now(); this.cleared = 0; v.route = path;
-        for (let i = 0; i < path.length; i++) { const jj = JM[path[i]]; if (!jj) continue; const td = i < path.length - 1 ? tdir(jj, JM[path[i + 1]]) : null; jj.setEm(td || v.dir); }
+        let arrDir = v.dir;
+        for (let i = 0; i < path.length; i++) {
+          const jj = JM[path[i]]; if (!jj) continue;
+          jj.setEm(arrDir);
+          if (i < path.length - 1) arrDir = tdir(jj, JM[path[i + 1]]);
+        }
         let n = 0; vehicles.forEach(o => { if (!o.isAmb && path.includes(o.jctId) && o.lane === 0) { o.lane = 2; n++; } }); this.cleared = n;
         drawRoute(path);
         document.getElementById('emb').style.display = 'inline-block';
@@ -3532,7 +3537,7 @@
       const tex = new THREE.CanvasTexture(cv2); const lbl = new THREE.Mesh(new THREE.PlaneGeometry(50, 7.5), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })); lbl.rotation.x = -Math.PI / 2; lbl.position.set(j.wx, 1, j.wz - 18); scene.add(lbl);
     });
     // Signal poles
-    const POLOFF = { N: { px: -(JR + 2.8), pz: -(JR + 1.8), ry: 0 }, S: { px: JR + 2.8, pz: JR + 1.8, ry: Math.PI }, E: { px: JR + 1.8, pz: -(JR + 2.8), ry: -Math.PI / 2 }, W: { px: -(JR + 1.8), pz: JR + 2.8, ry: Math.PI / 2 } };
+    const POLOFF = { N: { px: -(JR + 1.8), pz: JR + 2.8, ry: 0 }, S: { px: JR + 1.8, pz: -(JR + 2.8), ry: Math.PI }, E: { px: -(JR + 2.8), pz: -(JR + 1.8), ry: -Math.PI / 2 }, W: { px: JR + 2.8, pz: JR + 1.8, ry: Math.PI / 2 } };
     const mPole2 = new THREE.MeshLambertMaterial({ color: 0x0a0a18 }), mHou2 = new THREE.MeshLambertMaterial({ color: 0x050510 });
     function buildPole(jct, dir) {
       const g = new THREE.Group(), po = POLOFF[dir]; g.position.set(jct.wx + po.px, 0, jct.wz + po.pz); g.rotation.y = po.ry;
@@ -4080,45 +4085,54 @@
     }
 
     junctions.forEach(j => {
-      const spNS = _makeSpriteTex('#22d3ee'); spNS.position.set(j.wx, 14, j.wz - 16); scene.add(spNS);
-      const spEW = _makeSpriteTex('#fbbf24'); spEW.position.set(j.wx + 16, 14, j.wz); scene.add(spEW);
-      cntSprites[j.id] = { NS: spNS, EW: spEW };
-      _cntCache[j.id] = { ns: '', ew: '' };
+      const sp = {};
+      const pd = { N: {x: -15.8, z: 16.8}, S: {x: 15.8, z: -16.8}, E: {x: -16.8, z: -15.8}, W: {x: 16.8, z: 15.8} };
+      ['N', 'S', 'E', 'W'].forEach(d => {
+         sp[d] = _makeSpriteTex('#ffffff');
+         sp[d].position.set(j.wx + pd[d].x, 14, j.wz + pd[d].z);
+         scene.add(sp[d]);
+      });
+      cntSprites[j.id] = sp;
+      _cntCache[j.id] = { N: '', S: '', E: '', W: '', NA: false, SA: false, EA: false, WA: false };
     });
 
     let _cntFrameSkip = 0;
     function countdownTick() {
-      // Only update every 12 frames (~5x/second) - timers don't need per-frame update
       _cntFrameSkip++;
       if (_cntFrameSkip < 12) return;
       _cntFrameSkip = 0;
 
       junctions.forEach(j => {
         const sp = cntSprites[j.id]; if (!sp) return;
-        if (j.em) { sp.NS.material.opacity = 0; sp.EW.material.opacity = 0; return; }
+        if (j.em) { ['N', 'S', 'E', 'W'].forEach(d => { if(sp[d]) sp[d].material.opacity = 0; }); return; }
 
-        const cur = j.phase === 'NS' ? j.nsDur : j.ewDur;
-        const rem = Math.max(0, Math.ceil(cur - j.tmr));
-        const nsActive = j.phase === 'NS';
-        const yelRem = j.yelT >= 0 ? Math.max(0, Math.ceil(j.YEL - j.yelT)) : 0;
+        const seq = ['N', 'E', 'S', 'W'];
+        const dur = { N: j.nsDur, E: j.ewDur, S: j.nsDur, W: j.ewDur };
+        const curIdx = seq.indexOf(j.phase);
+        const yelAct = j.yelT >= 0;
+        const yelRem = yelAct ? Math.max(0, Math.ceil(j.YEL - j.yelT)) : 0;
+        const grnRem = Math.max(0, Math.ceil(dur[j.phase] - j.tmr));
+        const baseWait = yelAct ? yelRem : grnRem + Math.ceil(j.YEL);
         const cache = _cntCache[j.id];
 
-        let nsLabel, ewLabel, nsAct = false, ewAct = false;
-        if (nsActive) {
-            nsLabel = j.yelT >= 0 ? yelRem + 's' : rem + 's';
-            ewLabel = (j.yelT >= 0 ? yelRem : rem + Math.ceil(j.YEL)) + 's';
-            nsAct = true;
-        } else {
-            ewLabel = j.yelT >= 0 ? yelRem + 's' : rem + 's';
-            nsLabel = (j.yelT >= 0 ? yelRem : rem + Math.ceil(j.YEL)) + 's';
-            ewAct = true;
-        }
-
-        const activeCol = j.yelT >= 0 ? '#fbbf24' : '#22c55e'; // Yellow or Green
-        const inactiveCol = '#ef4444'; // Red
-
-        if (cache.ns !== nsLabel || cache.nsAct !== nsAct) { cache.ns = nsLabel; cache.nsAct = nsAct; _drawCntTex(sp.NS, nsLabel, nsAct, nsAct ? activeCol : inactiveCol); }
-        if (cache.ew !== ewLabel || cache.ewAct !== ewAct) { cache.ew = ewLabel; cache.ewAct = ewAct; _drawCntTex(sp.EW, ewLabel, ewAct, ewAct ? activeCol : inactiveCol); }
+        ['N', 'E', 'S', 'W'].forEach(d => {
+          let act = (d === j.phase);
+          let lbl = '';
+          if (act) {
+            lbl = yelAct ? yelRem + 's' : grnRem + 's';
+          } else {
+            let tIdx = seq.indexOf(d);
+            let diff = (tIdx - curIdx + 4) % 4;
+            let acc = baseWait;
+            for (let k = 1; k < diff; k++) acc += Math.ceil(dur[seq[(curIdx + k) % 4]]) + Math.ceil(j.YEL);
+            lbl = acc + 's';
+          }
+          const col = act ? (yelAct ? '#fbbf24' : '#22c55e') : '#ef4444';
+          if (cache[d] !== lbl || cache[d+'A'] !== act) {
+            cache[d] = lbl; cache[d+'A'] = act;
+            _drawCntTex(sp[d], lbl, act, col);
+          }
+        });
       });
     }
 
