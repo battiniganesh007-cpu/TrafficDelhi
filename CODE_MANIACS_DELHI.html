@@ -2457,6 +2457,8 @@
             style="font-size:7px;color:var(--dim)">Cinematic</span></button>
         <button class="acbtn" id="acb-route" onclick="setAmbCam('route')">🗺 Route<br><span
             style="font-size:7px;color:var(--dim)">Overview</span></button>
+        <button class="acbtn" id="acb-360" onclick="setAmbCam('360')" style="grid-column: span 2;">🔄 360°<br><span
+            style="font-size:7px;color:var(--dim)">Orbit</span></button>
       </div>
       <div class="ac-info" id="acinfo">Chase cam — following from behind</div>
     </div>
@@ -3234,9 +3236,11 @@
       constructor(gx, gy) {
         this.gx = gx; this.gy = gy; const w = wpos(gx, gy); this.wx = w.wx; this.wz = w.wz;
         this.id = gx + '_' + gy; this.name = AREAS[gy][gx]; this.tier = TIER[gy][gx]; this.hosp = HM[this.id] || null;
-        this.phase = (gx + gy) % 2 === 0 ? 'EW' : 'NS'; this.tmr = Math.random() * 16; this.yelT = -1;
+        this.phaseIndex = (gx + gy) % 4;
+        this.phase = ['N', 'E', 'S', 'W'][this.phaseIndex]; this.tmr = Math.random() * 16; this.yelT = -1;
         this.nsDur = 20; this.ewDur = 20; this.YEL = 2.0; this.em = false; this.blocked = false; this.lights = {};
-        this.sig = { N: this.phase === 'NS' ? 'G' : 'R', S: this.phase === 'NS' ? 'G' : 'R', E: this.phase === 'EW' ? 'G' : 'R', W: this.phase === 'EW' ? 'G' : 'R' };
+        this.sig = { N: 'R', S: 'R', E: 'R', W: 'R' };
+        this.sig[this.phase] = 'G';
         this.nb = { N: gy > 0 ? (gx + '_' + (gy - 1)) : null, S: gy < GN - 1 ? (gx + '_' + (gy + 1)) : null, E: gx < GN - 1 ? ((gx + 1) + '_' + gy) : null, W: gx > 0 ? ((gx - 1) + '_' + gy) : null };
         this.qTmr = Math.random() * 7;
       }
@@ -3251,8 +3255,8 @@
           if (L[k].pt) { L[k].pt.color.setHex(on ? C[k] : 0); L[k].pt.intensity = on ? (k === 'G' ? 1.4 : k === 'Y' ? .7 : .5) : 0; }
         });
       }
-      setEm(td) { this.em = true; const ns = td === 'N' || td === 'S'; DIRS.forEach(d => { const g = ns ? (d === 'N' || d === 'S') : (d === 'E' || d === 'W'); this.setSig(d, g ? 'E' : 'R'); }); if (this === selJct) refreshPanel(); }
-      restore() { this.em = false; const ns = this.phase === 'NS'; DIRS.forEach(d => { const g = ns ? (d === 'N' || d === 'S') : (d === 'E' || d === 'W'); this.setSig(d, g ? 'G' : 'R'); }); if (this === selJct) refreshPanel(); }
+      setEm(td) { this.em = true; DIRS.forEach(d => { this.setSig(d, d === td ? 'E' : 'R'); }); if (this === selJct) refreshPanel(); }
+      restore() { this.em = false; DIRS.forEach(d => { this.setSig(d, d === this.phase ? 'G' : 'R'); }); if (this === selJct) refreshPanel(); }
       density() {
         const c = { N: 0, S: 0, E: 0, W: 0 };
         vehicles.forEach(v => { if (v.jctId !== this.id) return; if (v.phase === 'approach') c[v.dir]++; else if (v.phase === 'exit' && v.exitDir) c[v.exitDir]++; });
@@ -3262,12 +3266,12 @@
         if (this.em) return;
         this.qTmr += dt;
         if (this.qTmr >= 7) { this.qTmr = 0; const d = this.density(); const r = runQAOA((d.N + d.S) / 2, (d.E + d.W) / 2); this.nsDur = r.nsDur; this.ewDur = r.ewDur; if (this === selJct) { refreshDens(d); refreshPanel(); updateMLForecast(d); } }
-        if (this.yelT >= 0) { this.yelT += dt; if (this.yelT >= this.YEL) { this.yelT = -1; this.tmr = 0; this.phase = this.phase === 'EW' ? 'NS' : 'EW'; const ns = this.phase === 'NS'; DIRS.forEach(d => { const g = ns ? (d === 'N' || d === 'S') : (d === 'E' || d === 'W'); this.setSig(d, g ? 'G' : 'R'); }); if (this === selJct) refreshPanel(); } return; }
-        this.tmr += dt; const cur = this.phase === 'NS' ? this.nsDur : this.ewDur;
-        if (this.tmr >= cur) { this.yelT = 0; const ns = this.phase === 'NS'; DIRS.forEach(d => { const g = ns ? (d === 'N' || d === 'S') : (d === 'E' || d === 'W'); this.setSig(d, g ? 'Y' : 'R'); }); return; }
+        if (this.yelT >= 0) { this.yelT += dt; if (this.yelT >= this.YEL) { this.yelT = -1; this.tmr = 0; this.phaseIndex = (this.phaseIndex + 1) % 4; this.phase = ['N', 'E', 'S', 'W'][this.phaseIndex]; DIRS.forEach(d => { this.setSig(d, d === this.phase ? 'G' : 'R'); }); if (this === selJct) refreshPanel(); } return; }
+        this.tmr += dt; const cur = (this.phase === 'N' || this.phase === 'S') ? this.nsDur : this.ewDur;
+        if (this.tmr >= cur) { this.yelT = 0; DIRS.forEach(d => { this.setSig(d, d === this.phase ? 'Y' : 'R'); }); return; }
         if (this === selJct) {
           const rem = Math.max(0, Math.ceil(cur - this.tmr)), wait = Math.max(0, Math.ceil(rem + this.YEL));
-          const grn = this.phase === 'NS' ? ['N', 'S'] : ['E', 'W'], red = this.phase === 'NS' ? ['E', 'W'] : ['N', 'S'];
+          const grn = [this.phase], red = DIRS.filter(d => d !== this.phase);
           grn.forEach(d => { const e = document.getElementById('t' + d); if (e) e.textContent = (this.yelT >= 0 ? 'YELLOW ' + Math.max(0, Math.ceil(this.YEL - this.yelT)) : 'GREEN ' + rem) + 's'; });
           red.forEach(d => { const e = document.getElementById('t' + d); if (e) e.textContent = 'RED ~' + (this.yelT >= 0 ? Math.max(0, Math.ceil(this.YEL - this.yelT)) : wait) + 's'; });
           document.getElementById('qd2').textContent = 'Phase:' + this.phase + ' | ' + (this.yelT >= 0 ? Math.max(0, Math.ceil(this.YEL - this.yelT)) : rem) + 's left';
@@ -3675,20 +3679,49 @@
       }
     }
 
-    // Ambulance cam mode: 'chase' | 'driver' | 'side' | 'route'
+    // Ambulance cam mode: 'chase' | 'driver' | 'side' | 'route' | '360'
     let ambCamMode = 'chase';
+    let amb360Angle = 0;
+    let amb360Drag = false;
+    let amb360Lx = 0;
+
+    CV.addEventListener('mousedown', e => {
+      if (camMode === 'drive' && ambCamMode === '360') {
+        amb360Drag = true;
+        amb360Lx = e.clientX;
+        CV.style.cursor = 'grabbing';
+      }
+    });
+    window.addEventListener('mousemove', e => {
+      if (amb360Drag && camMode === 'drive' && ambCamMode === '360') {
+        const dx = e.clientX - amb360Lx;
+        amb360Lx = e.clientX;
+        amb360Angle -= dx * 0.005;
+      }
+    });
+    window.addEventListener('mouseup', () => {
+      if (amb360Drag) {
+        amb360Drag = false;
+        CV.style.cursor = 'grab';
+      }
+    });
+
     const AMB_CAM_INFO = {
       chase: '🚑 Front view — camera ahead, facing the ambulance front grille + siren',
       driver: '🪟 Driver — first-person windshield, road and signals ahead',
       side: '↔ Side — cinematic parallel tracking shot',
-      route: '🗺 Route overview — full remaining path from above'
+      route: '🗺 Route overview — full remaining path from above',
+      '360': '🔄 360° View — Orbiting around the ambulance (Drag to rotate)'
     };
 
     function setAmbCam(mode) {
       ambCamMode = mode;
       _camSnapped = false;  // force snap on next frame so no lerp from wrong position
+      if (mode === '360') CV.style.cursor = 'grab';
+      else if (camMode === 'drive') CV.style.cursor = 'default';
+      
       // Update button states
-      ['chase', 'driver', 'side', 'route'].forEach(m => {
+      ['chase', 'driver', 'side', 'route', '360'].forEach(m => {
         const b = document.getElementById('acb-' + m);
         if (b) b.classList.toggle('on', m === mode);
       });
@@ -3770,6 +3803,16 @@
 
         if (SNAP) { camera.position.copy(_camPos); _camSnapped = true; }
         else camera.position.lerp(_camPos, 0.10);
+        camera.lookAt(_camTgt);
+
+      } else if (ambCamMode === '360') {
+        const dist = 32;
+        camera.fov = 60; camera.updateProjectionMatrix();
+        _camPos.copy(pos).add(new THREE.Vector3(Math.cos(amb360Angle) * dist, 14, Math.sin(amb360Angle) * dist));
+        _camTgt.copy(pos).add(new THREE.Vector3(0, 1.5, 0));
+        
+        if (SNAP) { camera.position.copy(_camPos); _camSnapped = true; }
+        else camera.position.lerp(_camPos, 0.15);
         camera.lookAt(_camTgt);
 
       } else if (ambCamMode === 'route') {
