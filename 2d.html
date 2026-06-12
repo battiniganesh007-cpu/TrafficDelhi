@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic AI Traffic Flow Optimizer & Emergency Grid</title>
+    <style>
+        :root {
+            --bg-color: #1a202c; --panel-bg: rgba(255, 255, 255, 0.98);
+            --primary: #3182ce; --success: #38a169; --danger: #e53e3e; --text: #2d3748;
+        }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg-color); color: var(--text);
+            display: flex; height: 100vh; overflow: hidden;
+        }
+
+        #simulation-container {
+            flex-grow: 1; position: relative; display: flex;
+            justify-content: center; align-items: center;
+            background-color: #72a95d; overflow: hidden;
+        }
+
+        canvas { display: block; box-shadow: 0 10px 40px rgba(0,0,0,0.5); background: #72a95d; }
+
+        #ui-panel {
+            width: 380px; background: var(--panel-bg);
+            box-shadow: -5px 0 25px rgba(0,0,0,0.4);
+            padding: 20px; display: flex; flex-direction: column;
+            z-index: 10; overflow-y: auto;
+        }
+
+        h1 { font-size: 1.25rem; margin: 0 0 15px 0; color: var(--primary); border-bottom: 2px solid #edf2f7; padding-bottom: 10px; }
+        
+        .section-title { font-weight: 700; margin: 15px 0 10px; font-size: 0.85rem; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .stat-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 10px; font-size: 0.85rem; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .stat-row:last-child { margin-bottom: 0; }
+        .stat-value { font-weight: 800; font-family: monospace; font-size: 1.1em; color: var(--primary); }
+
+        .btn {
+            padding: 10px 14px; border: none; border-radius: 6px; font-weight: 700;
+            cursor: pointer; margin-bottom: 8px; transition: all 0.2s; font-size: 0.85rem;
+            color: white; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .btn:active { transform: translateY(1px); }
+
+        .btn-primary { background: var(--primary); }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); }
+        .btn-warning { background: #d69e2e; color: white; }
+
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .btn-full { grid-column: span 2; }
+
+        .status-indicator {
+            padding: 8px 12px; border-radius: 6px; text-align: center;
+            font-weight: 800; font-size: 0.9rem; margin-bottom: 10px; letter-spacing: 0.5px;
+        }
+        .status-normal { background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
+        .status-emergency { background: #fed7d7; color: #742a2a; border: 1px solid #feb2b2; animation: pulse 1s infinite alternate; }
+
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; transform: scale(1.02); box-shadow: 0 0 10px rgba(229, 62, 62, 0.4); }
+        }
+
+        .density-bar-container { height: 8px; background: #e2e8f0; border-radius: 4px; margin-top: 4px; overflow: hidden; }
+        .density-bar { height: 100%; transition: width 0.3s, background-color 0.3s; }
+        
+        .hud-banner {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            padding: 8px 20px; border-radius: 20px; font-weight: 800; font-size: 1rem;
+            letter-spacing: 1px; z-index: 5; text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); pointer-events: none;
+        }
+        .hud-quantum { background: rgba(128, 90, 213, 0.9); border: 2px solid #b794f4; color: white; }
+        .hud-emergency { background: rgba(229, 62, 62, 0.95); border: 2px solid #fc8181; color: white; animation: blinkFast 0.5s infinite alternate; display: none; }
+        .hud-predictive { background: rgba(49, 130, 206, 0.9); border: 2px solid #63b3ed; color: white; display: none; top: 70px; font-size: 0.85rem;}
+
+        @keyframes blinkFast {
+            from { opacity: 1; box-shadow: 0 0 20px #fc8181; }
+            to { opacity: 0.5; box-shadow: none; }
+        }
+
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .metric-card { background: #fdfdfd; border: 1px solid #edf2f7; padding: 10px; border-radius: 6px; text-align: center; }
+        .metric-val { font-size: 1.25rem; font-weight: 800; font-family: monospace; color: var(--primary); margin-top: 5px;}
+
+    </style>
+</head>
+<body>
+
+    <div id="simulation-container">
+        <!-- Overlay HUD Banners -->
+        <div id="quantum-banner" class="hud-banner hud-quantum">⚛ Quantum Optimization (4-Phase) ⚛</div>
+        <div id="emergency-banner" class="hud-banner hud-emergency">🚨 EMERGENCY OVERRIDE 🚨</div>
+        <div id="predictive-banner" class="hud-banner hud-predictive">Predicting...</div>
+        
+        <canvas id="simCanvas"></canvas>
+    </div>
+
+    <div id="ui-panel">
+        <h1>AI Traffic Intelligence</h1>
+        
+        <div id="system-status" class="status-indicator status-normal">NORMAL OPERATION</div>
+
+        <div class="btn-grid">
+            <button id="btn-toggle-sim" class="btn btn-warning btn-full">⏸ Pause Simulation</button>
+            <button id="btn-add-ambulance" class="btn btn-danger">🚑 Spawn Ambulance</button>
+            <button id="btn-add-fireengine" class="btn btn-danger">🚒 Spawn Fire Engine</button>
+        </div>
+
+        <div class="section-title">Performance Metrics</div>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div style="font-size:0.75rem; color:#718096">Avg Wait Time</div>
+                <div id="perf-wait" class="metric-val">0.0s</div>
+            </div>
+            <div class="metric-card">
+                <div style="font-size:0.75rem; color:#718096">Congestion Drop</div>
+                <div id="perf-cong" class="metric-val" style="color:var(--success)">28%</div>
+            </div>
+        </div>
+
+        <div class="section-title">Signal Analytics (4-Phase)</div>
+        <div class="stat-box">
+            <div class="stat-row">
+                <span>Active Signal:</span>
+                <span id="opt-strategy" style="font-weight:bold; color:var(--primary)">NORTH</span>
+            </div>
+            <div class="stat-row">
+                <span>Time Remaining:</span>
+                <span id="opt-timer" style="font-weight:bold; font-family: monospace;">0s</span>
+            </div>
+        </div>
+
+        <div class="section-title">Road Density Monitoring</div>
+        <div id="density-stats">
+            <!-- Populated by JS -->
+        </div>
+
+    </div>
+
+    <script>
+        /**
+         * Dynamic AI Traffic Flow Optimizer
+         * - 4 Phase Separate Light Control (N, S, E, W completely individual)
+         * - Vehicle Arc Turning Logic (Left and Right)
+         * - Cleaned up signal visuauls
+         */
+
+        const CONFIG = {
+            cw: 1200, ch: 900, fps: 60,
+            roadWidth: 220, laneCount: 3, laneWidth: 32, dividerWidth: 16,
+            safeDistance: 50, carWidth: 16, carLength: 34, busLength: 50, ambulanceLength: 42,
+            roadCapacity: 35, juncSize: 220
+        };
+
+        const SPEEDS = { NORMAL: 2.5, EMERGENCY: 5.5, MAX_ACCEL: 0.15, MAX_DECEL: 0.3 };
+        const DIRECTIONS = { NORTH: 'NORTH', SOUTH: 'SOUTH', EAST: 'EAST', WEST: 'WEST' };
+        const SIGNAL_STATES = { RED: 'RED', GREEN: 'GREEN', YELLOW: 'YELLOW' };
+
+        const state = {
+            running: true, emergencyMode: false, emergencyDir: null, vehicles: [],
+            signals: {
+                [DIRECTIONS.NORTH]: { state: SIGNAL_STATES.RED, timer: 0, waitedFor: 0 },
+                [DIRECTIONS.SOUTH]: { state: SIGNAL_STATES.RED, timer: 0, waitedFor: 0 },
+                [DIRECTIONS.EAST]: {  state: SIGNAL_STATES.RED, timer: 0, waitedFor: 0 },
+                [DIRECTIONS.WEST]: {  state: SIGNAL_STATES.RED, timer: 0, waitedFor: 0 }
+            },
+            density: {
+                [DIRECTIONS.NORTH]: { count: 0, val: 0 },
+                [DIRECTIONS.SOUTH]: { count: 0, val: 0 },
+                [DIRECTIONS.EAST]: { count: 0, val: 0 },
+                [DIRECTIONS.WEST]: { count: 0, val: 0 }
+            },
+            cycleTime: 0, frameCount: 0, lastSpawnTime: 0,
+            metrics: { avgWait: 0, timeSaved: 0 }
+        };
+
+        let activePhase = DIRECTIONS.NORTH; 
+        let phaseTimer = 15; // remaining sec
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+        function resize() {
+            canvas.width = window.innerWidth - 380; 
+            canvas.height = window.innerHeight;
+            CONFIG.cw = canvas.width; CONFIG.ch = canvas.height;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const btnToggle = document.getElementById('btn-toggle-sim');
+        const btnAmb = document.getElementById('btn-add-ambulance');
+        const btnFire = document.getElementById('btn-add-fireengine');
+        const densityStats = document.getElementById('density-stats');
+        const statusIndicator = document.getElementById('system-status');
+        const qBanner = document.getElementById('quantum-banner');
+        const eBanner = document.getElementById('emergency-banner');
+        const pBanner = document.getElementById('predictive-banner');
+
+        Object.values(DIRECTIONS).forEach(dir => {
+            const el = document.createElement('div');
+            el.className = 'stat-box'; el.style.padding = '6px 10px';
+            el.innerHTML = `
+                <div class="stat-row" style="font-size: 0.75rem;">
+                    <strong>${dir}</strong>
+                    <span>C: <span id="cnt-val-${dir}">0</span></span>
+                    <span id="dens-val-${dir}" style="font-weight: bold;">0%</span>
+                </div>
+                <div class="density-bar-container">
+                    <div class="density-bar" id="dens-bar-${dir}" style="width: 0%; background: #38a169;"></div>
+                </div>
+            `;
+            densityStats.appendChild(el);
+        });
+
+        btnToggle.addEventListener('click', () => {
+            state.running = !state.running;
+            btnToggle.textContent = state.running ? '⏸ Pause Simulation' : '▶ Resume Simulation';
+            btnToggle.className = state.running ? 'btn btn-warning btn-full' : 'btn btn-primary btn-full';
+            btnAmb.disabled = !state.running; btnFire.disabled = !state.running;
+            if(state.running) requestAnimationFrame(gameLoop);
+        });
+
+        btnAmb.addEventListener('click', () => spawnEmergency('AMBULANCE'));
+        btnFire.addEventListener('click', () => spawnEmergency('FIRE_ENGINE'));
+
+        class Vehicle {
+            constructor(dir, type = 'CAR', forceLane = -1) {
+                this.id = Math.random().toString(36).substr(2, 9);
+                this.dir = dir; this.type = type;
+                this.width = CONFIG.carWidth;
+                if(type === 'CAR') this.length = CONFIG.carLength + (Math.random()*6-3);
+                else if(type === 'BUS') { this.length = CONFIG.busLength; this.width += 2; }
+                else this.length = CONFIG.ambulanceLength;
+
+                if (type === 'AMBULANCE') this.color = '#ffffff';
+                else if (type === 'FIRE_ENGINE') this.color = '#e53e3e';
+                else if (type === 'BUS') this.color = '#ecc94b'; 
+                else {
+                    const colors = ['#3182ce', '#9f7aea', '#38a169', '#ed8936', '#a0aec0', '#2d3748', '#38b2ac', '#dd6b20', '#e2e8f0'];
+                    this.color = colors[Math.floor(Math.random() * colors.length)];
+                }
+
+                this.lane = forceLane >= 0 ? forceLane : Math.floor(Math.random() * CONFIG.laneCount);
+                if (type !== 'CAR' && type !== 'BUS') this.lane = 1; // Emergency uses straight lane (Middle)
+                this.targetLane = this.lane;
+
+                // Turn logic assignment based on lane
+                // 0: Left, 1: Straight, 2: Right
+                const r = Math.random();
+                if (type !== 'CAR' && type !== 'BUS') {
+                    this.turnDir = 'straight';
+                } else {
+                    if (this.lane === 0) this.turnDir = r < 0.6 ? 'left' : 'straight';
+                    else if (this.lane === 2) this.turnDir = r < 0.6 ? 'right' : 'straight';
+                    else this.turnDir = 'straight';
+                }
+
+                this.speed = (type === 'CAR' || type === 'BUS') ? (SPEEDS.NORMAL + (Math.random()*0.6-0.3)) : SPEEDS.EMERGENCY;
+                if(type === 'BUS') this.speed *= 0.85; 
+                this.maxSpeed = this.speed;
+                this.passedJunction = false;
+                this.turning = false;
+                this.waitTimer = 0;
+                this.initPosition();
+            }
+
+            initPosition() {
+                this.updateLaneOffset();
+                const cx = CONFIG.cw / 2, cy = CONFIG.ch / 2;
+                const spawnDist = Math.max(CONFIG.cw, CONFIG.ch) / 2 + 150;
+
+                switch (this.dir) {
+                    case DIRECTIONS.SOUTH: this.x = cx + this.laneOffset; this.y = cy + spawnDist; this.angle = -Math.PI/2; break;
+                    case DIRECTIONS.NORTH: this.x = cx - this.laneOffset; this.y = cy - spawnDist; this.angle = Math.PI/2; break;
+                    case DIRECTIONS.EAST: this.x = cx + spawnDist; this.y = cy - this.laneOffset; this.angle = Math.PI; break;
+                    case DIRECTIONS.WEST: this.x = cx - spawnDist; this.y = cy + this.laneOffset; this.angle = 0; break;
+                }
+            }
+
+            updateLaneOffset() {
+                this.laneOffset = (this.lane * CONFIG.laneWidth) + (CONFIG.laneWidth / 2) + (CONFIG.dividerWidth / 2);
+            }
+
+            initTurn() {
+                this.turning = true;
+                this.tPath = { p0: {x: this.x, y: this.y}, t: 0 };
+                
+                const cx = CONFIG.cw / 2, cy = CONFIG.ch / 2;
+                let exitDir, exitLaneOffset = this.laneOffset;
+                let p2 = {x:0, y:0}, p1 = {x:0, y:0};
+
+                const isRight = (this.turnDir === 'right');
+                
+                if (this.dir === DIRECTIONS.NORTH) { 
+                    exitDir = isRight ? DIRECTIONS.EAST : DIRECTIONS.WEST;
+                    p2.x = isRight ? (cx - CONFIG.roadWidth) : (cx + CONFIG.roadWidth);
+                    p2.y = isRight ? (cy - exitLaneOffset) : (cy + exitLaneOffset); 
+                    p1.x = this.x; p1.y = p2.y;
+                } else if (this.dir === DIRECTIONS.SOUTH) { 
+                    exitDir = isRight ? DIRECTIONS.WEST : DIRECTIONS.EAST;
+                    p2.x = isRight ? (cx + CONFIG.roadWidth) : (cx - CONFIG.roadWidth);
+                    p2.y = isRight ? (cy + exitLaneOffset) : (cy - exitLaneOffset);
+                    p1.x = this.x; p1.y = p2.y;
+                } else if (this.dir === DIRECTIONS.WEST) { 
+                    exitDir = isRight ? DIRECTIONS.NORTH : DIRECTIONS.SOUTH;
+                    p2.x = isRight ? (cx - exitLaneOffset) : (cx + exitLaneOffset);
+                    p2.y = isRight ? (cy + CONFIG.roadWidth) : (cy - CONFIG.roadWidth);
+                    p1.x = p2.x; p1.y = this.y;
+                } else if (this.dir === DIRECTIONS.EAST) { 
+                    exitDir = isRight ? DIRECTIONS.SOUTH : DIRECTIONS.NORTH;
+                    p2.x = isRight ? (cx + exitLaneOffset) : (cx - exitLaneOffset);
+                    p2.y = isRight ? (cy - CONFIG.roadWidth) : (cy + CONFIG.roadWidth);
+                    p1.x = p2.x; p1.y = this.y;
+                }
+
+                this.tPath.p1 = p1; this.tPath.p2 = p2; this.tPath.exitDir = exitDir;
+                this.tPath.len = Math.hypot(p2.x - this.x, p2.y - this.y) * 1.5;
+            }
+
+            update(vehicles, signals) {
+                let minSubDist = Infinity, obstacleSpeed = -1;
+                const isEmerg = (this.type !== 'CAR' && this.type !== 'BUS');
+                const juncEntering = this.getDistToJunction();
+                
+                if (juncEntering > -15 && !this.passedJunction) {
+                    if (state.emergencyMode && !isEmerg && this.dir !== state.emergencyDir) {
+                        if (juncEntering > 20 && juncEntering < minSubDist) { minSubDist = juncEntering; obstacleSpeed = 0; }
+                    } else if (!isEmerg && signals[this.dir].state !== SIGNAL_STATES.GREEN) {
+                        if (juncEntering > 0 && juncEntering < minSubDist) { minSubDist = juncEntering; obstacleSpeed = 0; }
+                    }
+                }
+                
+                if (juncEntering <= 0 && !this.passedJunction) { 
+                    this.passedJunction = true; 
+                    if (this.turnDir !== 'straight') this.initTurn();
+                }
+
+                // ── COLLISION: only block if same direction (or both turning) ─────────────
+                let coneLimit = isEmerg ? 0.4 : 0.6;
+                
+                for (let v of vehicles) {
+                    if (isEmerg) continue;
+                    if (v === this) continue;
+
+                    // Only interact with vehicles heading the same direction (including turning)
+                    const sameDir = (v.dir === this.dir) || (v.turning && v.tPath && v.tPath.exitDir === this.tPath?.exitDir);
+                    const sameLane = Math.abs(v.lane - this.lane) <= 1;  // allow adjacent lane awareness
+
+                    if (!sameDir && !this.turning) continue;   // cross-direction → ignore entirely
+
+                    let dx = v.x - this.x;
+                    let dy = v.y - this.y;
+                    let dist = Math.hypot(dx, dy);
+                    if (dist < 70 && dist > 0) {
+                        let angleToV = Math.atan2(dy, dx);
+                        let diff = this.angle - angleToV;
+                        while(diff < -Math.PI) diff += 2*Math.PI;
+                        while(diff > Math.PI) diff -= 2*Math.PI;
+
+                        if (Math.abs(diff) < coneLimit) {
+                            if (dist < minSubDist) { minSubDist = dist; obstacleSpeed = v.speed; }
+                        }
+                    }
+                }
+
+                // ── DEADLOCK ESCAPE: only remove if stuck 25s+ AND signal is already green ──
+                // This prevents removing vehicles that are correctly stopped at a red light
+                const sigIsGreen = signals[this.dir] && signals[this.dir].state === SIGNAL_STATES.GREEN;
+                if (this.waitTimer > 25 && sigIsGreen && !this.passedJunction) {
+                    return false;   // truly trapped despite green light → clear to fix gridlock
+                }
+
+                if (state.emergencyMode && !isEmerg && this.dir === state.emergencyDir) {
+                    if (this.lane === 1) this.targetLane = 0; 
+                }
+
+                if (!this.turning && this.lane !== this.targetLane) {
+                    let safeToMerge = true;
+                    // Aggressive emergency vacating
+                    if (!(state.emergencyMode && !isEmerg && this.dir === state.emergencyDir)) {
+                        for (let v of vehicles) {
+                            if (v !== this && !v.turning && v.dir === this.dir && v.lane === this.targetLane) {
+                                if (Math.abs(this.getVehicleDist(v)) < CONFIG.safeDistance * 1.5) safeToMerge = false;
+                            }
+                        }
+                    }
+                    if (safeToMerge) { this.lane = this.targetLane; this.updateLaneOffset(); }
+                    else { obstacleSpeed = 0.5; minSubDist = Math.min(minSubDist, 30); }
+                }
+
+                // Kinematic Dynamics
+                if (minSubDist < CONFIG.safeDistance) {
+                    this.speed -= SPEEDS.MAX_DECEL * 1.5; if (this.speed < 0) this.speed = 0;
+                } else if (minSubDist < CONFIG.safeDistance * 2.5) {
+                    if (this.speed > obstacleSpeed) this.speed -= SPEEDS.MAX_DECEL * 0.8;
+                    else if (this.speed < obstacleSpeed) this.speed += SPEEDS.MAX_ACCEL;
+                } else {
+                    if (this.speed < this.maxSpeed) this.speed += SPEEDS.MAX_ACCEL;
+                }
+
+                // Only increment stuck timer when signal is green (not when legitimately at a red light)
+                const mySignalGreen = signals[this.dir] && signals[this.dir].state === SIGNAL_STATES.GREEN;
+                if (this.speed < 0.2 && !this.passedJunction && mySignalGreen) {
+                    this.waitTimer += 1 / CONFIG.fps;
+                } else if (this.speed > 0.5 || !mySignalGreen) {
+                    // Reset when moving OR when at a red (that's expected behaviour, not a gridlock)
+                    this.waitTimer = Math.max(0, this.waitTimer - 2 / CONFIG.fps);
+                }
+
+                // Pathing update
+                if (this.turning && this.tPath) {
+                    if (this.tPath.len > 0) this.tPath.t += (this.speed / this.tPath.len);
+                    if (this.tPath.t >= 1) {
+                        this.turning = false; this.dir = this.tPath.exitDir; 
+                        if (this.dir === DIRECTIONS.EAST) this.angle = Math.PI;
+                        if (this.dir === DIRECTIONS.WEST) this.angle = 0;
+                        if (this.dir === DIRECTIONS.NORTH) this.angle = Math.PI/2;
+                        if (this.dir === DIRECTIONS.SOUTH) this.angle = -Math.PI/2;
+                        this.x = this.tPath.p2.x; this.y = this.tPath.p2.y;
+                    } else {
+                        const t = this.tPath.t, mt = 1 - t;
+                        const nx = mt * mt * this.tPath.p0.x + 2 * mt * t * this.tPath.p1.x + t * t * this.tPath.p2.x;
+                        const ny = mt * mt * this.tPath.p0.y + 2 * mt * t * this.tPath.p1.y + t * t * this.tPath.p2.y;
+                        // Avoid lockup at start of turn where dx, dy are minuscule
+                        if(t > 0.05) this.angle = Math.atan2(ny - this.y, nx - this.x);
+                        this.x = nx; this.y = ny;
+                    }
+                } else {
+                    this.x += Math.cos(this.angle) * this.speed;
+                    this.y += Math.sin(this.angle) * this.speed;
+                    
+                    if (this.dir === DIRECTIONS.NORTH || this.dir === DIRECTIONS.SOUTH) {
+                        let targetX = (CONFIG.cw/2) + this.laneOffset * (this.dir===DIRECTIONS.SOUTH?1:-1);
+                        this.x += (targetX - this.x) * 0.1;
+                    } else {
+                        let targetY = (CONFIG.ch/2) + this.laneOffset * (this.dir===DIRECTIONS.WEST?1:-1);
+                        this.y += (targetY - this.y) * 0.1;
+                    }
+                }
+
+                if (this.x < -1000 || this.x > CONFIG.cw + 1000 || this.y < -1000 || this.y > CONFIG.ch + 1000) return false; 
+                return true;
+            }
+
+            getDistToJunction() {
+                const cx = CONFIG.cw/2, cy = CONFIG.ch/2, stopOffset = CONFIG.juncSize/2 + 5;
+                if (this.dir === DIRECTIONS.SOUTH) return this.y - (cy + stopOffset);
+                if (this.dir === DIRECTIONS.NORTH) return (cy - stopOffset) - this.y;
+                if (this.dir === DIRECTIONS.WEST) return (cx - stopOffset) - this.x;
+                if (this.dir === DIRECTIONS.EAST) return this.x - (cx + stopOffset);
+                return Infinity;
+            }
+            getVehicleDist(other) {
+                if (this.dir === DIRECTIONS.SOUTH) return this.y - other.y;
+                if (this.dir === DIRECTIONS.NORTH) return other.y - this.y;
+                if (this.dir === DIRECTIONS.WEST) return other.x - this.x;
+                if (this.dir === DIRECTIONS.EAST) return this.x - other.x;
+                return Infinity;
+            }
+
+            draw(ctx) {
+                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
+                const L2 = this.length/2, W2 = this.width/2;
+                const type = this.type;
+                const isAmbu = (type === 'AMBULANCE'), isFire = (type === 'FIRE_ENGINE'), isBus = (type === 'BUS');
+
+                ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 8; ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
+                ctx.fillStyle = this.color; ctx.beginPath(); ctx.roundRect(-L2, -W2, this.length, this.width, 3); ctx.fill();
+                ctx.shadowColor = 'transparent'; ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.stroke();
+
+                if (!isBus && !isAmbu && !isFire) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.beginPath(); ctx.roundRect(-L2+6, -W2+1, this.length-14, this.width-2, 2); ctx.fill();
+                    ctx.fillStyle = 'rgba(200, 230, 255, 0.5)';
+                    ctx.beginPath(); ctx.roundRect(L2-10, -W2+2, 5, this.width-4, 1); ctx.fill(); 
+                    ctx.beginPath(); ctx.roundRect(-L2+5, -W2+2, 4, this.width-4, 1); ctx.fill(); 
+                    
+                    // Turn indicator (Blinkers)
+                    if (this.turnDir !== 'straight' && !this.passedJunction && this.speed < this.baseSpeed*0.8) {
+                        if (Math.floor(Date.now() / 300) % 2 === 0) {
+                            ctx.fillStyle = '#f6ad55'; ctx.shadowColor = '#ed8936'; ctx.shadowBlur = 5;
+                            const yOff = (this.turnDir === 'right') ? W2 : -W2;
+                            ctx.beginPath(); ctx.arc(L2-2, yOff, 2, 0, Math.PI*2); ctx.fill();
+                            ctx.beginPath(); ctx.arc(-L2+2, yOff, 2, 0, Math.PI*2); ctx.fill();
+                            ctx.shadowBlur = 0;
+                        }
+                    }
+
+                } else if (isAmbu) {
+                    ctx.fillStyle = '#e53e3e'; ctx.fillRect(-3, -W2+2, 6, this.width-4);
+                    ctx.fillRect(-(this.width-4)/2, -3, this.width-4, 6);
+                    ctx.fillStyle = 'rgba(200, 230, 255, 0.6)'; ctx.fillRect(L2-8, -W2+1, 5, this.width-2);
+                } else if (isFire) {
+                    ctx.fillStyle = '#cbd5e0'; ctx.fillRect(-L2+5, -3, this.length-15, 6);
+                    for(let i=0; i<this.length-15; i+=4) ctx.fillRect(-L2+5+i, -4, 2, 8);
+                    ctx.fillStyle = 'rgba(30, 30, 30, 0.8)'; ctx.fillRect(L2-10, -W2+1, 6, this.width-2);
+                }
+
+                // Lights
+                ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(L2, W2-3, 2, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(L2, -W2+3, 2, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = (this.speed < this.baseSpeed*0.5) ? '#f56565' : '#742a2a';
+                if(this.speed < this.baseSpeed*0.5){ ctx.shadowColor = '#f56565'; ctx.shadowBlur = 6; }
+                ctx.beginPath(); ctx.arc(-L2, W2-3, 2, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(-L2, -W2+3, 2, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0;
+
+                if (isAmbu || isFire) {
+                    const blink = Math.floor(Date.now() / 150) % 2 === 0;
+                    ctx.globalAlpha = 1; ctx.shadowBlur = 15;
+                    let c1 = isAmbu ? (blink ? '#4299e1' : '#e53e3e') : (blink ? '#e53e3e' : '#ecc94b');
+                    let c2 = isAmbu ? (blink ? '#e53e3e' : '#4299e1') : (blink ? '#ecc94b' : '#e53e3e');
+                    ctx.fillStyle = c1; ctx.shadowColor = c1; ctx.beginPath(); ctx.arc(L2-5, -W2-1, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = c2; ctx.shadowColor = c2; ctx.beginPath(); ctx.arc(L2-5, W2+1, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = c2; ctx.shadowColor = c2; ctx.beginPath(); ctx.arc(-L2+5, -W2-1, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = c1; ctx.shadowColor = c1; ctx.beginPath(); ctx.arc(-L2+5, W2+1, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+                ctx.restore();
+            }
+        }
+
+        function spawnEmergency(type) {
+            const dir = Object.values(DIRECTIONS)[Math.floor(Math.random() * 4)];
+            const emV = new Vehicle(dir, type, 1); // 1 is middle/straight lane
+            state.vehicles.push(emV);
+            
+            state.emergencyMode = true; state.emergencyDir = dir;
+            statusIndicator.className = 'status-indicator status-emergency';
+            statusIndicator.innerHTML = `🚨 PRIORITY OVERRIDE: ${dir} 🚨`;
+            
+            qBanner.style.display = 'none'; eBanner.style.display = 'block'; pBanner.style.display = 'block';
+
+            Object.values(DIRECTIONS).forEach(d => {
+                state.signals[d].state = (d === dir) ? SIGNAL_STATES.GREEN : SIGNAL_STATES.RED;
+            });
+            activePhase = dir;
+            phaseTimer = 999; 
+        }
+
+        // --- TRAFFIC MANAGEMENT 4-PHASE LOGIC ---
+        function calculateDensities() {
+            Object.values(DIRECTIONS).forEach(d => state.density[d].count = 0);
+
+            let totalWait = 0, waitCount = 0;
+            state.vehicles.forEach(v => {
+                const dist = v.getDistToJunction();
+                if (!v.passedJunction && dist > 0 && dist < 600) state.density[v.dir].count++;
+                if (v.speed < 1.0) { totalWait += v.waitTimer; waitCount++; }
+            });
+
+            const avgWait = waitCount > 0 ? (totalWait / waitCount).toFixed(1) : "0.0";
+            document.getElementById('perf-wait').textContent = avgWait + 's';
+
+            Object.values(DIRECTIONS).forEach(dir => {
+                let cnt = state.density[dir].count;
+                let dens = cnt / CONFIG.roadCapacity; if(dens > 1) dens = 1;
+                state.density[dir].val = dens;
+
+                document.getElementById(`cnt-val-${dir}`).textContent = cnt;
+                document.getElementById(`dens-val-${dir}`).textContent = (dens * 100).toFixed(0) + '%';
+                
+                const bar = document.getElementById(`dens-bar-${dir}`);
+                bar.style.width = `${dens * 100}%`;
+                bar.style.backgroundColor = (dens < 0.4) ? 'var(--success)' : (dens < 0.7) ? '#d69e2e' : 'var(--danger)'; 
+            });
+        }
+
+        function assignQAOASignals() {
+            // QAOA-inspired optimization with fairness: prevent starvation
+            const dirs = Object.values(DIRECTIONS);
+            
+            // Increment wait pressure for all red directions
+            dirs.forEach(dir => {
+                if (state.signals[dir].state !== SIGNAL_STATES.GREEN) {
+                    state.signals[dir].waitedFor = (state.signals[dir].waitedFor || 0) + 1;
+                } else {
+                    state.signals[dir].waitedFor = 0;
+                }
+            });
+
+            let bestPhase = activePhase;
+            let maxScore = -Infinity;
+
+            dirs.forEach(dir => {
+                const d = state.density[dir].val;
+                const waitBonus = (state.signals[dir].waitedFor || 0) * 0.08; // fairness pressure
+                const starvationBonus = (state.density[dir].count > 0 && (state.signals[dir].waitedFor || 0) > 40) ? 5 : 0;
+                const score = (d * 10) + waitBonus + starvationBonus;
+                
+                if (score > maxScore) {
+                    maxScore = score; bestPhase = dir;
+                }
+            });
+
+            // If all densities zero → round-robin
+            if (maxScore <= 0) {
+                const idx = dirs.indexOf(activePhase);
+                bestPhase = dirs[(idx + 1) % dirs.length];
+            }
+
+            activePhase = bestPhase;
+            
+            const dObj = state.density[bestPhase].val;
+            let greenTime = dObj >= 0.7 ? 45 : dObj >= 0.4 ? 28 : 12;
+            // Ensure minimum 8s so vehicles always get a chance to move
+            greenTime = Math.max(8, greenTime);
+
+            phaseTimer = greenTime;
+
+            dirs.forEach(dir => {
+                state.signals[dir].state = (bestPhase === dir) ? SIGNAL_STATES.GREEN : SIGNAL_STATES.RED;
+                if (bestPhase === dir) state.signals[dir].timer = 0;
+            });
+
+            document.getElementById('opt-strategy').textContent = bestPhase;
+        }
+
+        function updateSignals() {
+            if (state.emergencyMode) {
+                let emVehicles = state.vehicles.filter(v => v.type === 'AMBULANCE' || v.type === 'FIRE_ENGINE');
+                if (emVehicles.length === 0) {
+                    state.emergencyMode = false; state.emergencyDir = null;
+                    statusIndicator.className = 'status-indicator status-normal';
+                    statusIndicator.innerHTML = `NORMAL OPERATION`;
+                    qBanner.style.display = 'block'; eBanner.style.display = 'none'; pBanner.style.display = 'none';
+                    phaseTimer = 0; 
+                } else {
+                    const emV = emVehicles[0];
+                    const dist = emV.getDistToJunction();
+                    if(dist > -CONFIG.juncSize/2) {
+                        const arrivalSec = Math.max(0, (dist / SPEEDS.EMERGENCY) / 60);
+                        pBanner.textContent = `Next signal turning GREEN in ${arrivalSec.toFixed(1)}s`;
+                    } else { pBanner.textContent = `Corridor Active. Proceeding.`; }
+                }
+                return;
+            }
+
+            phaseTimer -= 1 / CONFIG.fps;
+            Object.values(DIRECTIONS).forEach(dir => state.signals[dir].timer += 1/CONFIG.fps);
+
+            if (phaseTimer <= 0) assignQAOASignals();
+
+            const t = Math.max(0, Math.ceil(phaseTimer));
+            document.getElementById('opt-timer').textContent = t + 's';
+        }
+
+        // --- HIGH FIDELITY RENDERING ---
+        function drawGrassAndScenery() {
+            ctx.fillStyle = '#72a95d'; ctx.fillRect(0, 0, CONFIG.cw, CONFIG.ch);
+
+            const cx = CONFIG.cw / 2, cy = CONFIG.ch / 2, hw = CONFIG.roadWidth / 2;
+            ctx.fillStyle = '#a0aec0'; 
+            ctx.fillRect(cx - hw - 20, 0, 20, CONFIG.ch); ctx.fillRect(cx + hw, 0, 20, CONFIG.ch);
+            ctx.fillRect(0, cy - hw - 20, CONFIG.cw, 20); ctx.fillRect(0, cy + hw, CONFIG.cw, 20);
+            
+            const drawHouse = (hx, hy, w, h, roofColor, isHorizontal=true) => {
+                ctx.save(); ctx.translate(hx, hy);
+                ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15; ctx.shadowOffsetX = 8; ctx.shadowOffsetY = 8;
+                ctx.fillStyle = '#edf2f7'; ctx.fillRect(0, 0, w, h);
+                ctx.shadowColor = 'transparent';
+                
+                const adjustColor = (color, amt) => '#' + color.replace(/^#/, '').replace(/../g, c => ('0'+Math.min(255, Math.max(0, parseInt(c, 16) + amt)).toString(16)).substr(-2));
+                if (isHorizontal) {
+                    ctx.fillStyle = adjustColor(roofColor, 20); ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(w,0); ctx.lineTo(w-15, h/2); ctx.lineTo(15, h/2); ctx.fill();
+                    ctx.fillStyle = adjustColor(roofColor, -20); ctx.beginPath(); ctx.moveTo(15, h/2); ctx.lineTo(w-15, h/2); ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.fill();
+                    ctx.fillStyle = adjustColor(roofColor, 40); ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(15, h/2); ctx.lineTo(0, h); ctx.fill();
+                    ctx.fillStyle = adjustColor(roofColor, -40); ctx.beginPath(); ctx.moveTo(w,0); ctx.lineTo(w-15, h/2); ctx.lineTo(w, h); ctx.fill();
+                    ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(15, h/2 - 2, w-30, 4);
+                } else {
+                    ctx.fillStyle = adjustColor(roofColor, 20); ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(w/2, 15); ctx.lineTo(w/2, h-15); ctx.lineTo(0, h); ctx.fill();
+                    ctx.fillStyle = adjustColor(roofColor, -20); ctx.beginPath(); ctx.moveTo(w/2, 15); ctx.lineTo(w, 0); ctx.lineTo(w, h); ctx.lineTo(w/2, h-15); ctx.fill();
+                    ctx.fillStyle = adjustColor(roofColor, 40); ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(w,0); ctx.lineTo(w/2, 15); ctx.fill();
+                    ctx.fillStyle = adjustColor(roofColor, -40); ctx.beginPath(); ctx.moveTo(0,h); ctx.lineTo(w/2, h-15); ctx.lineTo(w, h); ctx.fill();
+                    ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(w/2 - 2, 15, 4, h-30);
+                }
+                ctx.restore();
+            };
+
+            drawHouse(80, 80, 160, 120, '#dd6b20', true); 
+            drawHouse(cx+hw+100, 80, 140, 140, '#3182ce', false); 
+            drawHouse(120, cy+hw+120, 180, 100, '#718096', true); 
+
+            const drawTree = (tx, ty, size, hue) => {
+                ctx.save(); ctx.translate(tx, ty);
+                ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 10; ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
+                ctx.fillStyle = `hsl(${hue}, 60%, 25%)`; ctx.beginPath(); ctx.arc(0, 0, size, 0, Math.PI*2); ctx.fill();
+                ctx.shadowColor = 'transparent'; ctx.fillStyle = `hsl(${hue}, 55%, 35%)`;
+                for(let a=0; a<Math.PI*2; a+=Math.PI/3) { ctx.beginPath(); ctx.arc(Math.cos(a)*size*0.4, Math.sin(a)*size*0.4, size*0.6, 0, Math.PI*2); ctx.fill(); }
+                ctx.fillStyle = `hsl(${hue}, 65%, 45%)`;
+                for(let a=Math.PI; a<Math.PI*2.5; a+=Math.PI/2) { ctx.beginPath(); ctx.arc(Math.cos(a)*size*0.2 - size*0.1, Math.sin(a)*size*0.2 - size*0.1, size*0.5, 0, Math.PI*2); ctx.fill(); }
+                ctx.restore();
+            };
+
+            drawTree(320, 180, 60, 110); drawTree(80, 260, 45, 105);
+            drawTree(cx+hw+250, 240, 75, 120); drawTree(cx+hw+80, 280, 50, 95);
+            drawTree(60, cy+hw+60, 55, 130); drawTree(250, CONFIG.ch-80, 65, 115);
+            drawTree(cx+hw+150, cy+hw+150, 80, 110); drawTree(cx+hw+280, cy+hw+80, 45, 100);
+        }
+
+        function drawRoads() {
+            const cx = CONFIG.cw/2, cy = CONFIG.ch/2, rw = CONFIG.roadWidth, hw = rw/2;
+
+            ctx.fillStyle = '#2d3748'; ctx.fillRect(cx - hw, 0, rw, CONFIG.ch); ctx.fillRect(0, cy - hw, CONFIG.cw, rw);
+            ctx.fillStyle = '#1a202c'; ctx.fillRect(cx - hw, cy - hw, rw, rw);
+
+            ctx.fillStyle = '#a0aec0';
+            ctx.fillRect(cx - CONFIG.dividerWidth/2, 0, CONFIG.dividerWidth, cy - hw);
+            ctx.fillRect(cx - CONFIG.dividerWidth/2, cy + hw, CONFIG.dividerWidth, CONFIG.ch - (cy + hw));
+            ctx.fillRect(0, cy - CONFIG.dividerWidth/2, cx - hw, CONFIG.dividerWidth);
+            ctx.fillRect(cx + hw, cy - CONFIG.dividerWidth/2, CONFIG.cw - (cx + hw), CONFIG.dividerWidth);
+
+            ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 3; ctx.setLineDash([20, 20]);
+            
+            for(let i=1; i<CONFIG.laneCount; i++) {
+                let offL = cx - CONFIG.dividerWidth/2 - i*CONFIG.laneWidth, offR = cx + CONFIG.dividerWidth/2 + i*CONFIG.laneWidth;
+                ctx.beginPath(); ctx.moveTo(offL, 0); ctx.lineTo(offL, cy-hw); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(offR, 0); ctx.lineTo(offR, cy-hw); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(offL, cy+hw); ctx.lineTo(offL, CONFIG.ch); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(offR, cy+hw); ctx.lineTo(offR, CONFIG.ch); ctx.stroke();
+                
+                let offT = cy - CONFIG.dividerWidth/2 - i*CONFIG.laneWidth, offB = cy + CONFIG.dividerWidth/2 + i*CONFIG.laneWidth;
+                ctx.beginPath(); ctx.moveTo(0, offT); ctx.lineTo(cx-hw, offT); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, offB); ctx.lineTo(cx-hw, offB); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx+hw, offT); ctx.lineTo(CONFIG.cw, offT); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx+hw, offB); ctx.lineTo(CONFIG.cw, offB); ctx.stroke();
+            }
+            ctx.setLineDash([]);
+
+            const drawZebra = (zx, zy, isHoriz, signX, signY) => {
+                ctx.save(); ctx.translate(zx, zy);
+                ctx.fillStyle = '#e2e8f0'; ctx.fillRect(isHoriz ? 0 : (signX<0 ? 0 : -8), isHoriz ? (signY<0 ? 0 : -8) : 0, isHoriz ? rw : 8, isHoriz ? 8 : rw);
+                for(let i=10; i<rw-10; i+=20) {
+                    if(isHoriz) ctx.fillRect(i, signY * 15, 10, signY * 24); else ctx.fillRect(signX * 15, i, signX * 24, 10);
+                }
+                ctx.restore();
+            };
+            drawZebra(cx-hw, cy-hw-8, true, 1, -1); drawZebra(cx-hw, cy+hw+8, true, 1, 1);
+            drawZebra(cx-hw-8, cy-hw, false, -1, 1); drawZebra(cx+hw+8, cy-hw, false, 1, 1);
+
+            // Neon Green Priority Corridor Visual
+            if (state.emergencyMode && state.emergencyDir) {
+                ctx.fillStyle = 'rgba(72, 187, 120, 0.4)'; // Neon Green Pulse Highlight
+                const lOff = CONFIG.dividerWidth/2;
+                const fullW = CONFIG.laneCount * CONFIG.laneWidth;
+                if (state.emergencyDir === DIRECTIONS.NORTH) ctx.fillRect(cx - lOff - fullW, 0, fullW, CONFIG.ch); // Southbound
+                else if (state.emergencyDir === DIRECTIONS.SOUTH) ctx.fillRect(cx + lOff, 0, fullW, CONFIG.ch); // Northbound
+                else if (state.emergencyDir === DIRECTIONS.EAST) ctx.fillRect(0, cy - lOff - fullW, CONFIG.cw, fullW); // Westbound
+                else if (state.emergencyDir === DIRECTIONS.WEST) ctx.fillRect(0, cy + lOff, CONFIG.cw, fullW); // Eastbound
+            }
+        }
+
+        // Professional vertical traffic light signals
+        function drawSignals() {
+            const cx = CONFIG.cw/2, cy = CONFIG.ch/2, jOff = CONFIG.roadWidth/2 + 18;
+
+            /**
+             * Draws a single professional traffic light.
+             * @param {number} x - Center X position
+             * @param {number} y - Center Y position
+             * @param {string} stateVal - Current signal state (RED/YELLOW/GREEN)
+             * @param {number} rot - Rotation in radians (signal faces its road approach)
+             */
+            const drawSignalLight = (x, y, stateVal, rot) => {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(rot);
+
+                // --- Pole / Stem ---
+                const poleW = 5, poleH = 20;
+                const poleGrad = ctx.createLinearGradient(-poleW/2, 0, poleW/2, 0);
+                poleGrad.addColorStop(0, '#555');
+                poleGrad.addColorStop(0.4, '#aaa');
+                poleGrad.addColorStop(1, '#444');
+                ctx.fillStyle = poleGrad;
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 6;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+                ctx.beginPath();
+                ctx.roundRect(-poleW/2, 0, poleW, poleH, 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // --- Housing body (dark rounded rectangle, vertical) ---
+                const hW = 18, hH = 52, hRadius = 6;
+                const housingGrad = ctx.createLinearGradient(-hW/2, -hH/2, hW/2, hH/2);
+                housingGrad.addColorStop(0,   '#444');
+                housingGrad.addColorStop(0.35, '#3a3a3a');
+                housingGrad.addColorStop(0.65, '#2e2e2e');
+                housingGrad.addColorStop(1,    '#1e1e1e');
+                ctx.fillStyle = housingGrad;
+                ctx.shadowColor = 'rgba(0,0,0,0.7)';
+                ctx.shadowBlur = 12;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+                ctx.beginPath();
+                ctx.roundRect(-hW/2, -hH/2, hW, hH, hRadius);
+                ctx.fill();
+
+                // Housing highlight edge (left)
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.roundRect(-hW/2, -hH/2, hW, hH, hRadius);
+                ctx.stroke();
+
+                // --- Light positions (top=red, mid=yellow, bottom=green) ---
+                const lightSpacing = 16;
+                const lightPositions = [
+                    { yOff: -lightSpacing,  colorOn: '#ff3b30', colorDim: '#3d0f0b', glowOn: '#ff3b30', state: SIGNAL_STATES.RED   },
+                    { yOff: 0,              colorOn: '#ffcc00', colorDim: '#3d3000', glowOn: '#ffcc00', state: SIGNAL_STATES.YELLOW },
+                    { yOff: +lightSpacing,  colorOn: '#30d158', colorDim: '#073d12', glowOn: '#30d158', state: SIGNAL_STATES.GREEN  },
+                ];
+
+                const isActive = (ls) => stateVal === ls.state;
+                const lightR = 6;
+
+                lightPositions.forEach(ls => {
+                    const ly = ls.yOff;
+                    const on = isActive(ls);
+
+                    // Visor hood (subtle 3D depth cue)
+                    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+                    ctx.beginPath();
+                    ctx.ellipse(0, ly - lightR * 0.6, lightR * 0.85, lightR * 0.35, 0, Math.PI, 0);
+                    ctx.fill();
+
+                    // Outer bezel / socket ring
+                    ctx.fillStyle = on ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.4)';
+                    ctx.beginPath();
+                    ctx.arc(0, ly, lightR + 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    if (on) {
+                        // Glow halo
+                        const glow = ctx.createRadialGradient(0, ly, 0, 0, ly, lightR * 2.8);
+                        glow.addColorStop(0,   ls.glowOn + 'cc');
+                        glow.addColorStop(0.5, ls.glowOn + '44');
+                        glow.addColorStop(1,   ls.glowOn + '00');
+                        ctx.fillStyle = glow;
+                        ctx.beginPath();
+                        ctx.arc(0, ly, lightR * 2.8, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Main lit bulb
+                        const bulbGrad = ctx.createRadialGradient(-lightR*0.3, ly - lightR*0.3, lightR*0.1, 0, ly, lightR);
+                        bulbGrad.addColorStop(0,   '#ffffff');
+                        bulbGrad.addColorStop(0.3,  ls.colorOn);
+                        bulbGrad.addColorStop(1,    ls.colorOn + 'cc');
+                        ctx.fillStyle = bulbGrad;
+                        ctx.shadowColor = ls.glowOn;
+                        ctx.shadowBlur = 18;
+                        ctx.beginPath();
+                        ctx.arc(0, ly, lightR, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+                    } else {
+                        // Dim/off bulb
+                        const dimGrad = ctx.createRadialGradient(-lightR*0.3, ly - lightR*0.3, 0, 0, ly, lightR);
+                        dimGrad.addColorStop(0, ls.colorDim + 'ff');
+                        dimGrad.addColorStop(1, ls.colorDim + '88');
+                        ctx.fillStyle = dimGrad;
+                        ctx.beginPath();
+                        ctx.arc(0, ly, lightR, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    // Specular highlight on bulb
+                    const spec = ctx.createRadialGradient(-lightR*0.3, ly - lightR*0.35, 0, -lightR*0.1, ly - lightR*0.2, lightR*0.6);
+                    spec.addColorStop(0, 'rgba(255,255,255,0.55)');
+                    spec.addColorStop(1, 'rgba(255,255,255,0)');
+                    ctx.fillStyle = spec;
+                    ctx.beginPath();
+                    ctx.arc(0, ly, lightR, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // --- Countdown timer on active (green) light ---
+                if (stateVal === SIGNAL_STATES.GREEN || stateVal === SIGNAL_STATES.RED) {
+                    const timerY = stateVal === SIGNAL_STATES.GREEN ? +lightSpacing : -lightSpacing;
+                    ctx.save();
+                    ctx.translate(0, timerY);
+                    ctx.rotate(-rot);  // keep text upright
+                    ctx.font = 'bold 7px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#fff';
+                    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+                    ctx.shadowBlur = 3;
+                    ctx.fillText(Math.ceil(phaseTimer) + 's', 0, 0);
+                    ctx.restore();
+                }
+
+                ctx.restore();
+            };
+
+            // 4 corners — each signal faces its road approach
+            // North approach → signal at top-left corner, facing south (rot=0 = pole down)
+            drawSignalLight(cx - jOff, cy - jOff - 10, state.signals[DIRECTIONS.NORTH].state, 0);
+            // South approach → signal at bottom-right corner, facing north (rot=π = pole up)
+            drawSignalLight(cx + jOff, cy + jOff + 10, state.signals[DIRECTIONS.SOUTH].state, Math.PI);
+            // East approach → signal at top-right corner, facing west (rot=-π/2)
+            drawSignalLight(cx + jOff + 10, cy - jOff, state.signals[DIRECTIONS.EAST].state, -Math.PI/2);
+            // West approach → signal at bottom-left corner, facing east (rot=π/2)
+            drawSignalLight(cx - jOff - 10, cy + jOff, state.signals[DIRECTIONS.WEST].state, Math.PI/2);
+        }
+
+        // --- CYCLE ---
+        function gameLoop() {
+            if (!state.running) return;
+
+            state.frameCount++;
+            if (state.frameCount - state.lastSpawnTime > 30) {
+                if (Math.random() > 0.3) {
+                    const dirs = Object.values(DIRECTIONS);
+                    const spawnDir = dirs[Math.floor(Math.random() * dirs.length)];
+                    let forceLane = -1;
+                    if (state.emergencyMode && spawnDir === state.emergencyDir) forceLane = Math.floor(Math.random() * (CONFIG.laneCount - 1));
+                    
+                    let type = Math.random() > 0.9 ? 'BUS' : 'CAR';
+                    let newV = new Vehicle(spawnDir, type, forceLane);
+                    
+                    // Anti-overlap spawn mechanism
+                    let clearToSpawn = true;
+                    for (let ov of state.vehicles) {
+                        if (ov.dir === spawnDir && Math.hypot(ov.x - newV.x, ov.y - newV.y) < 110) clearToSpawn = false;
+                    }
+                    if (clearToSpawn) {
+                        state.vehicles.push(newV);
+                        state.lastSpawnTime = state.frameCount - Math.floor(Math.random() * 20);
+                    }
+                }
+            }
+
+            calculateDensities();
+            updateSignals();
+
+            let activeVehicles = [];
+            for (let i = 0; i < state.vehicles.length; i++) {
+                if (state.vehicles[i].update(state.vehicles, state.signals)) activeVehicles.push(state.vehicles[i]);
+            }
+            state.vehicles = activeVehicles;
+
+            ctx.clearRect(0, 0, CONFIG.cw, CONFIG.ch);
+            drawGrassAndScenery();
+            drawRoads();
+            state.vehicles.forEach(v => v.draw(ctx));
+            drawSignals();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- INIT ---
+        gameLoop(); 
+    </script>
+</body>
+</html>
